@@ -3,8 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+
+
+
 namespace api.Models
 {
+    public enum SeriesFormat
+    {
+        Single = 1,
+        Series = 2
+    }
+    
     public class Series
     {
         public int Id { get; set; }
@@ -13,6 +22,7 @@ namespace api.Models
         public string Thumbnail { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public int TypeId { get; set; }
+        public SeriesFormat SeriesFormat { get; set; }
         //Navigation property
         required public SeriesType SeriesType { get; set; }
         public List<Comment> Comments { get; set; } = [];

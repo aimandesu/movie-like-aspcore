@@ -40,6 +40,10 @@ namespace api.Data
             .HasOne(e => e.Video)
             .WithOne(e => e.Episode)
             .HasForeignKey<Episode>(e => e.VideoId);
+
+             modelBuilder.Entity<Series>()
+            .Property(s => s.SeriesFormat)
+            .HasConversion<string>();
         }
         
     }
