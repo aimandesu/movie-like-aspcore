@@ -14,7 +14,9 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public int? Season { get; set; }
         public int? EpisodeNumber { get; set; }
+        public int SeriesId { get; set; }
         required public Series Series { get; set; }
+         public int VideoId { get; set; }
         required public Video Video { get; set; }
         
     }

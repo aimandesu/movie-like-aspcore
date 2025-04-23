@@ -18,7 +18,7 @@ namespace api.Models
         public int ViewCount { get; set; }
         //Navigation property
         required public Episode Episode { get; set; }
-        required public History History { get; set; }
+        public History? History { get; set; }
 
     }
 }
