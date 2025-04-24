@@ -21,7 +21,8 @@ namespace api.Data
         public DbSet<Impression> Impressions {get; set;}
         public DbSet<Comment> Comments {get; set;}
         public DbSet<Series> Series {get; set;}
-        public DbSet<SeriesType> SeriesTypes {get; set;}
+        public DbSet<SeriesCategory> SeriesCategories {get; set;}
+        public DbSet<TagCategory> TagCategories {get; set;}
         public DbSet<Category> Categories {get; set;}
         public DbSet<Tag> Tags {get; set;}
         public DbSet<Episode> Episodes {get; set;}

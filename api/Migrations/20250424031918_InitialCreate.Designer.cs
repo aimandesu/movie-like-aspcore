@@ -12,8 +12,8 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250423160350_UpdateSeriesModel")]
-    partial class UpdateSeriesModel
+    [Migration("20250424031918_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,16 +33,11 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("SeriesTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SeriesTypeId");
 
                     b.ToTable("Categories");
                 });
@@ -59,7 +54,7 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SeriesId")
+                    b.Property<int>("SeriesId")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")
@@ -188,9 +183,6 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SeriesTypeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Thumbnail")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -199,17 +191,12 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TypeId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("SeriesTypeId");
 
                     b.ToTable("Series");
                 });
 
-            modelBuilder.Entity("api.Models.SeriesType", b =>
+            modelBuilder.Entity("api.Models.SeriesCategory", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -220,12 +207,17 @@ namespace api.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TagId")
+                    b.Property<int>("SeriesId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("SeriesTypes");
+                    b.HasIndex("CategoryId")
+                        .IsUnique();
+
+                    b.HasIndex("SeriesId");
+
+                    b.ToTable("SeriesCategories");
                 });
 
             modelBuilder.Entity("api.Models.Tag", b =>
@@ -236,18 +228,37 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("SeriesTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SeriesTypeId");
-
                     b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("api.Models.TagCategory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("SeriesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TagId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeriesId");
+
+                    b.HasIndex("TagId")
+                        .IsUnique();
+
+                    b.ToTable("TagCategories");
                 });
 
             modelBuilder.Entity("api.Models.User", b =>
@@ -350,20 +361,13 @@ namespace api.Migrations
                     b.ToTable("Wishlists");
                 });
 
-            modelBuilder.Entity("api.Models.Category", b =>
-                {
-                    b.HasOne("api.Models.SeriesType", "SeriesType")
-                        .WithMany("Categories")
-                        .HasForeignKey("SeriesTypeId");
-
-                    b.Navigation("SeriesType");
-                });
-
             modelBuilder.Entity("api.Models.Comment", b =>
                 {
                     b.HasOne("api.Models.Series", "Series")
                         .WithMany("Comments")
-                        .HasForeignKey("SeriesId");
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("api.Models.User", "User")
                         .WithMany("Comments")
@@ -425,24 +429,42 @@ namespace api.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("api.Models.Series", b =>
+            modelBuilder.Entity("api.Models.SeriesCategory", b =>
                 {
-                    b.HasOne("api.Models.SeriesType", "SeriesType")
-                        .WithMany()
-                        .HasForeignKey("SeriesTypeId")
+                    b.HasOne("api.Models.Category", "Category")
+                        .WithOne("SeriesCategory")
+                        .HasForeignKey("api.Models.SeriesCategory", "CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("SeriesType");
+                    b.HasOne("api.Models.Series", "Series")
+                        .WithMany("SeriesCategories")
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Series");
                 });
 
-            modelBuilder.Entity("api.Models.Tag", b =>
+            modelBuilder.Entity("api.Models.TagCategory", b =>
                 {
-                    b.HasOne("api.Models.SeriesType", "SeriesType")
-                        .WithMany("Tags")
-                        .HasForeignKey("SeriesTypeId");
+                    b.HasOne("api.Models.Series", "Series")
+                        .WithMany("TagCategories")
+                        .HasForeignKey("SeriesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("SeriesType");
+                    b.HasOne("api.Models.Tag", "Tag")
+                        .WithOne("TagCategory")
+                        .HasForeignKey("api.Models.TagCategory", "TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Series");
+
+                    b.Navigation("Tag");
                 });
 
             modelBuilder.Entity("api.Models.Video", b =>
@@ -473,6 +495,11 @@ namespace api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("api.Models.Category", b =>
+                {
+                    b.Navigation("SeriesCategory");
+                });
+
             modelBuilder.Entity("api.Models.History", b =>
                 {
                     b.Navigation("Videos");
@@ -486,14 +513,16 @@ namespace api.Migrations
 
                     b.Navigation("Impressions");
 
+                    b.Navigation("SeriesCategories");
+
+                    b.Navigation("TagCategories");
+
                     b.Navigation("Wishlists");
                 });
 
-            modelBuilder.Entity("api.Models.SeriesType", b =>
+            modelBuilder.Entity("api.Models.Tag", b =>
                 {
-                    b.Navigation("Categories");
-
-                    b.Navigation("Tags");
+                    b.Navigation("TagCategory");
                 });
 
             modelBuilder.Entity("api.Models.User", b =>

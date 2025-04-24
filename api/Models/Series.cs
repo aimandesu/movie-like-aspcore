@@ -21,10 +21,10 @@ namespace api.Models
         public string Description { get; set; } = string.Empty;
         public string Thumbnail { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
-        public int TypeId { get; set; }
         public SeriesFormat SeriesFormat { get; set; }
         //Navigation property
-        required public SeriesType SeriesType { get; set; }
+        public List<SeriesCategory> SeriesCategories { get; set; } = [];
+        public List<TagCategory> TagCategories { get; set; } = [];
         public List<Comment> Comments { get; set; } = [];
         public List<Impression> Impressions { get; set; } = [];
         public List<Wishlist> Wishlists { get; set; } = [];

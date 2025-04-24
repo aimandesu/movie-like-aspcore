@@ -15,9 +15,9 @@ namespace api.Models
         public int? Season { get; set; }
         public int? EpisodeNumber { get; set; }
         public int SeriesId { get; set; }
+        public int VideoId { get; set; }
+        //navigation property
         required public Series Series { get; set; }
-         public int VideoId { get; set; }
-        required public Video Video { get; set; }
-        
+        public Video? Video { get; set; }
     }
 }

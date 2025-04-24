@@ -8,7 +8,7 @@ namespace api.Models
     public class Category
     {
         public int Id { get; set; }
-        public string Title { get; set; } = string.Empty;
-        public SeriesType? SeriesType { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public SeriesCategory? SeriesCategory { get; set; }
     }
 }

@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 namespace api.Models
 {
-    public class Comment
+    public class TagCategory
     {
         public int Id { get; set; }
-        public string Discussion { get; set; } = string.Empty;
-        public int UserId { get; set; }
+        public int TagId { get; set; }
         public int SeriesId { get; set; }
-        public User? User { get; set; }
-        public Series? Series { get; set; }
+        //navigation property
+        required public Series Series { get; set; }
+        required public Tag Tag { get; set; }
     }
 }

@@ -10,6 +10,7 @@ namespace api.Models
         public int Id { get; set; }
         public int UserId { get; set; }
         public int VideoId { get; set; }
+        //navigation propery
         public List<Video> Videos { get; set; } = [];
         public User? User { get; set; }
     }
