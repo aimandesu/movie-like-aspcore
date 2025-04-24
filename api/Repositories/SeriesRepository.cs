@@ -70,8 +70,8 @@ namespace api.Repositories
         public async Task<List<Series>> GetAllSeries(SeriesQueryObject queryObject)
         {
             var query = _context.Series
-                .Include(s => s.SeriesCategories)
-                .ThenInclude(sc => sc.Category)
+                // .Include(s => s.SeriesCategories)
+                // .ThenInclude(sc => sc.Category)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(queryObject.Category))

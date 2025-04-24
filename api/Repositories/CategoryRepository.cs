@@ -18,7 +18,7 @@ namespace api.Repositories
         }
         public async Task<Category?> CreateCategory(Category category)
         {
-             await _context.Categories.AddAsync(category);
+            await _context.Categories.AddAsync(category);
             await _context.SaveChangesAsync();
             return category;
         }

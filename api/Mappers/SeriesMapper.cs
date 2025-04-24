@@ -20,7 +20,7 @@ namespace api.Mappers
                 CreatedAt = series.CreatedAt,
                 SeriesFormat = series.SeriesFormat,
                 SeriesCategories = [.. series.SeriesCategories.Select(sc => sc.ToSeriesCategoryDto())],
-                TagCategories = series.TagCategories
+                TagCategories = [.. series.TagCategories.Select(sc => sc.ToTagCategoryDto())],
             };
         }
     }

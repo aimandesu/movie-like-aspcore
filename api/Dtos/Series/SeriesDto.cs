@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using api.Dtos.SeriesCategories;
+using api.Dtos.TagCategories;
 using api.Models;
 
 namespace api.Dtos.Series
@@ -16,6 +17,6 @@ namespace api.Dtos.Series
         public DateTime CreatedAt { get; set; }
         public SeriesFormat SeriesFormat { get; set; }
         public List<SeriesCategoriesDto> SeriesCategories { get; set; } = [];
-        public List<TagCategory> TagCategories { get; set; } = [];
+        public List<TagCategoriesDto> TagCategories { get; set; } = [];
     }
 }
