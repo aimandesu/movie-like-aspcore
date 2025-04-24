@@ -14,5 +14,7 @@ namespace api.Dtos.Series
         public string Description { get; set; } = string.Empty;
         // [Required]
         public string Thumbnail { get; set; } = string.Empty;
+        [Required]
+        public List<int> CategoryIds { get; set; } = [];
     }
 }

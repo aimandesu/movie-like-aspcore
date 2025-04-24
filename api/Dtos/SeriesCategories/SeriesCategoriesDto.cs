@@ -3,16 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Models
+namespace api.Dtos.SeriesCategories
 {
-    public class SeriesCategory
+    public class SeriesCategoriesDto
     {
         public int Id { get; set; }
         public int CategoryId { get; set; }
         public int SeriesId { get; set; }
-        //nvagiation propery
-        public Series? Series { get; set; }
-        public Category? Category { get; set; }
-
     }
 }

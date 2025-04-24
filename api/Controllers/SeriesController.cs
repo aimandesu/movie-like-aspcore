@@ -6,8 +6,10 @@ using api.Data;
 using api.Dtos.Series;
 using api.Helpers;
 using api.Interfaces;
+using api.Mappers;
 using api.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -35,7 +37,9 @@ namespace api.Controllers
 
             var series =  await _seriesRepo.GetAllSeries(queryObject);
 
-            return Ok(series);
+            var seriesDto = series.Select(s => s.ToSeriesDto());
+
+            return Ok(seriesDto);
 
         }
 
@@ -68,7 +72,11 @@ namespace api.Controllers
                 Description = dto.Description,
                 Thumbnail = dto.Thumbnail,
                 SeriesFormat = SeriesFormat.Single,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                SeriesCategories = [.. dto.CategoryIds.Select(catId => new SeriesCategory
+                {
+                    CategoryId = catId
+                })]
             };
 
             var created = await _seriesRepo.CreateSeries(series, thumbnail);
@@ -113,5 +121,30 @@ namespace api.Controllers
             
         }
 
+        [HttpDelete("delete_all_series")]
+        public async Task<IActionResult> DeleteAllSeries()
+        {
+            var seriesList = await _context.Series.ToListAsync();
+
+            if (seriesList.Count == 0)
+                return NotFound("No series found to delete.");
+
+            foreach (var series in seriesList)
+            {
+                if (!string.IsNullOrEmpty(series.Thumbnail))
+                {
+                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", series.Thumbnail.TrimStart('/'));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+            }
+
+            _context.Series.RemoveRange(seriesList);
+            await _context.SaveChangesAsync();
+
+            return Ok("All series and their images have been deleted.");
+        }
     }
 }

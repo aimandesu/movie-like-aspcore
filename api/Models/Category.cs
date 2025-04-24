@@ -9,6 +9,6 @@ namespace api.Models
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
-        public SeriesCategory? SeriesCategory { get; set; }
+        // public SeriesCategory? SeriesCategory { get; set; }
     }
 }
