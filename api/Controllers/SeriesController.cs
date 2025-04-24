@@ -76,12 +76,16 @@ namespace api.Controllers
                 SeriesCategories = [.. dto.CategoryIds.Select(catId => new SeriesCategory
                 {
                     CategoryId = catId
+                })],
+                TagCategories = [.. dto.TagCategoryIds.Select(tagId => new TagCategory
+                {
+                    TagId = tagId
                 })]
             };
 
             var created = await _seriesRepo.CreateSeries(series, thumbnail);
             
-            return CreatedAtAction(nameof(GetSeries), new { id = series.Id }, series);
+            return CreatedAtAction(nameof(GetSeries), new { id = series.Id }, series.ToSeriesDto());
         }
 
         [HttpPut("{id:int}")]
@@ -99,7 +103,7 @@ namespace api.Controllers
             if (series == null)
                 return NotFound();
 
-            return Ok(series);
+            return Ok(series.ToSeriesDto());
         }
 
 

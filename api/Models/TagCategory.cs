@@ -11,7 +11,7 @@ namespace api.Models
         public int TagId { get; set; }
         public int SeriesId { get; set; }
         //navigation property
-        required public Series Series { get; set; }
-        required public Tag Tag { get; set; }
+        public Series? Series { get; set; }
+        public Tag? Tag { get; set; }
     }
 }

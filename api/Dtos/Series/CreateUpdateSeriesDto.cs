@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Helpers;
 
 namespace api.Dtos.Series
 {
@@ -14,7 +15,11 @@ namespace api.Dtos.Series
         public string Description { get; set; } = string.Empty;
         // [Required]
         public string Thumbnail { get; set; } = string.Empty;
-        [Required]
+        // [Required]
+        [NotEmptyList]
         public List<int> CategoryIds { get; set; } = [];
+
+        [NotEmptyList]
+        public List<int> TagCategoryIds { get; set; } = [];
     }
 }

@@ -89,12 +89,18 @@ namespace api.Repositories
 
         public async Task<Series?> GetSeries(int id)
         {
-            return await _context.Series.Include(e => e.Episodes).FirstOrDefaultAsync(i => i.Id == id);
+            return await _context.Series
+            // .Include(e => e.SeriesCategories)
+            // .Include(e => e.Episodes)
+            .FirstOrDefaultAsync(i => i.Id == id);
         }
 
         public async Task<Series?> UpdateSeries(int id, CreateUpdateSeriesDto dto, IFormFile? thumbnail = null)
         {
-            var existingSeries = await _context.Series.FirstOrDefaultAsync(e => e.Id == id);
+            var existingSeries = await _context
+                .Series
+                // .Include(s => s.SeriesCategories), we can remove this bcs in series without extending to dto already gets all relationship 
+                .FirstOrDefaultAsync(e => e.Id == id);
 
             if (existingSeries == null)
             {
@@ -116,6 +122,52 @@ namespace api.Repositories
                 await thumbnail.CopyToAsync(stream);
 
                 existingSeries.Thumbnail = $"/uploads/{uniqueFileName}";
+            }
+
+            //remove categories and tags
+            var categoriesToRemove = existingSeries.SeriesCategories
+                    .Where(sc => !dto.CategoryIds.Contains(sc.CategoryId))
+                    .ToList();
+
+            foreach (var categoryToRemove in categoriesToRemove)
+            {
+                _context.Remove(categoryToRemove);  
+            }
+
+            var tagsToRemove = existingSeries.TagCategories
+                    .Where(sc => !dto.TagCategoryIds.Contains(sc.TagId))
+                    .ToList();
+
+            foreach (var tagToRemove in tagsToRemove)
+            {
+                _context.Remove(tagToRemove);  
+            }
+
+            //add categories and tags
+            foreach (var categoryId in dto.CategoryIds)
+            {
+                
+                if (!existingSeries.SeriesCategories.Any(sc => sc.CategoryId == categoryId))
+                {
+                    existingSeries.SeriesCategories.Add(new SeriesCategory
+                    {
+                        CategoryId = categoryId,
+                        SeriesId = existingSeries.Id
+                    });
+                }
+            }
+
+            foreach (var tagId in dto.TagCategoryIds)
+            {
+                
+                if (!existingSeries.TagCategories.Any(sc => sc.TagId == tagId))
+                {
+                    existingSeries.TagCategories.Add(new TagCategory
+                    {
+                        TagId = tagId,
+                        SeriesId = existingSeries.Id
+                    });
+                }
             }
 
             await _context.SaveChangesAsync();

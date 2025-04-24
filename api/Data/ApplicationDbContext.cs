@@ -46,15 +46,15 @@ namespace api.Data
             .Property(s => s.SeriesFormat)
             .HasConversion<string>();
 
-            modelBuilder.Entity<SeriesCategory>()
-            .HasOne(sc => sc.Series)
-            .WithMany(s => s.SeriesCategories)
-            .HasForeignKey(sc => sc.SeriesId);
+            // modelBuilder.Entity<SeriesCategory>()
+            // .HasOne(sc => sc.Series)
+            // .WithMany(s => s.SeriesCategories)
+            // .HasForeignKey(sc => sc.SeriesId);
 
-            modelBuilder.Entity<SeriesCategory>()
-            .HasOne(sc => sc.Category)
-            .WithMany()
-            .HasForeignKey(sc => sc.CategoryId);
+            // modelBuilder.Entity<SeriesCategory>()
+            // .HasOne(sc => sc.Category)
+            // .WithMany()
+            // .HasForeignKey(sc => sc.CategoryId);
 
         }
         
