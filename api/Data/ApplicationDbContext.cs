@@ -32,15 +32,15 @@ namespace api.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Episode>()
-            .HasOne(e => e.Series)
-            .WithMany(e => e.Episodes)
-            .HasForeignKey(e => e.SeriesId);
+            // modelBuilder.Entity<Episode>()
+            // .HasOne(e => e.Series)
+            // .WithMany(e => e.Episodes)
+            // .HasForeignKey(e => e.SeriesId);
        
-            modelBuilder.Entity<Episode>()
-            .HasOne(e => e.Video)
-            .WithOne(e => e.Episode)
-            .HasForeignKey<Episode>(e => e.VideoId);
+            // modelBuilder.Entity<Episode>()
+            // .HasOne(e => e.Video)
+            // .WithOne(e => e.Episode)
+            // .HasForeignKey<Episode>(e => e.VideoId);
 
              modelBuilder.Entity<Series>()
             .Property(s => s.SeriesFormat)

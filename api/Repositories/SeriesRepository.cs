@@ -91,7 +91,7 @@ namespace api.Repositories
         {
             return await _context.Series
             // .Include(e => e.SeriesCategories)
-            // .Include(e => e.Episodes)
+            .Include(e => e.Episodes)
             .FirstOrDefaultAsync(i => i.Id == id);
         }
 
