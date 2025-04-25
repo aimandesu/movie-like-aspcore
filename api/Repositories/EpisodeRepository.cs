@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Episode;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Repositories
 {
-    public class EpisodeRepository : IEpisodeRepository
+    public partial class EpisodeRepository : IEpisodeRepository
     {
         private readonly ApplicationDbContext _context;
         private readonly IFileService _fileService;
@@ -33,18 +34,21 @@ namespace api.Repositories
             var series = await _context.Series.FindAsync(episode.SeriesId);
             if (series == null) return null;
 
-            var safeTitle = CustomFunction.SanitizeFolderName(series.Title);
+            var safeTitle = MyRegex()
+                    .Replace(CustomFunction
+                    .SanitizeFolderName(series.Title)
+                    .Trim().ToLower().Replace(" ", "_"), "");
 
             if (thumbnail != null && thumbnail.Length > 0)
             {
-                var thumbFolder = $"uploads/series/{safeTitle.Trim().Replace("_", "")}/episode";
+                var thumbFolder = $"uploads/series/{safeTitle}/episode";
                 episode.Thumbnail = await _fileService.SaveFile(thumbnail, thumbFolder);
             }
 
     
             if (file != null && file.Length > 0)
             {
-                var videoFolder = $"uploads/series/{safeTitle.Trim().Replace("_", "")}/video";
+                var videoFolder = $"uploads/series/{safeTitle}/video";
                 var videoPath = await _fileService.SaveFile(file, videoFolder);
 
                 var video = new Video
@@ -126,12 +130,17 @@ namespace api.Repositories
         public async Task<Episode?> GetEpisode(int id)
         {
             return await _context
-                .Episodes.FirstOrDefaultAsync(i => i.Id == id);
+                .Episodes
+                .Include(s => s.Video)
+                .FirstOrDefaultAsync(i => i.Id == id);
         }
 
-        public Task<Series?> UpdateSeries(int id, CreateUpdateEpisodeDto dto, IFormFile? thumbnail = null)
+        public Task<Series?> UpdateEpisode(int id, CreateUpdateEpisodeDto dto, IFormFile? thumbnail = null)
         {
             throw new NotImplementedException();
         }
+
+        [GeneratedRegex(@"[^a-z0-9_]")]
+        private static partial Regex MyRegex();
     }
 }

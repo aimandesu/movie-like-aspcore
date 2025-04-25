@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using api.Data;
 using api.Dtos.Series;
@@ -12,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace api.Repositories
 {
-    public class SeriesRepository : ISeriesRepository
+    public partial class SeriesRepository : ISeriesRepository
     {
         private readonly ApplicationDbContext _context;
         private readonly IFileService _fileService;
@@ -33,8 +34,12 @@ namespace api.Repositories
 
             if (thumbnail != null && thumbnail.Length > 0)
             {
-                var safeTitle = CustomFunction.SanitizeFolderName(series.Title);
-                var folder = $"uploads/series/{safeTitle.Trim().Replace("_", "")}/thumbnail";
+                 var safeTitle = MyRegex()
+                                .Replace(CustomFunction
+                                .SanitizeFolderName(series.Title)
+                                .Trim().ToLower().Replace(" ", "_"), "");
+
+                var folder = $"uploads/series/{safeTitle}/thumbnail";
                 series.Thumbnail = await _fileService.SaveFile(thumbnail, folder);
 
                 _context.Series.Update(series);
@@ -187,5 +192,7 @@ namespace api.Repositories
             return existingSeries;
         }
 
+        [GeneratedRegex(@"[^a-z0-9_]")]
+        private static partial Regex MyRegex();
     }
 }

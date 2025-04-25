@@ -27,6 +27,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IEpisodeRepository, EpisodeRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IVideoRepository, VideoRepository>();
 
 
 var app = builder.Build();

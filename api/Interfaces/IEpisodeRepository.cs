@@ -18,6 +18,10 @@ namespace api.Interfaces
             IFormFile file
         );
         Task<Episode?> DeleteEpisode(int id);
-        Task<Series?> UpdateSeries(int id, CreateUpdateEpisodeDto dto, IFormFile? thumbnail = null);
+        Task<Series?> UpdateEpisode(
+            int id, 
+            CreateUpdateEpisodeDto dto, 
+            IFormFile? thumbnail = null
+        );
     }
 }
