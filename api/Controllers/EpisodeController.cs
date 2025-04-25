@@ -34,12 +34,12 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (queryObject == null)
+            if (string.IsNullOrWhiteSpace(queryObject.SeriesTitle))
                 return BadRequest("Series title is required.");
 
             var episodes = await _episodeRepo.GetAllEpisodes(queryObject);
 
-            return Ok(episodes);
+            return Ok(episodes.Select(s => s.ToEpisodeDto()));
         }
 
         [HttpGet("{id:int}")]
@@ -81,6 +81,24 @@ namespace api.Controllers
             var created = await _episodeRepo.CreateEpisode(episode, thumbnail, file);
             
             return CreatedAtAction(nameof(GetEpisode), new { id = episode.Id }, episode.ToEpisodeDto());
+        }
+
+        [HttpDelete]
+        [Route("{id:int}")]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var series = await _episodeRepo.DeleteEpisode(id);
+
+            if(series == null)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+            
         }
 
     }

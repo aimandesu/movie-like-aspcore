@@ -18,6 +18,6 @@ namespace api.Models
         // public int VideoId { get; set; }
         //navigation property
         public Series? Series { get; set; }
-        // public Video? Video { get; set; }
+        public Video? Video { get; set; }
     }
 }

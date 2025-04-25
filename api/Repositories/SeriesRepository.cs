@@ -15,36 +15,44 @@ namespace api.Repositories
     public class SeriesRepository : ISeriesRepository
     {
         private readonly ApplicationDbContext _context;
-        public SeriesRepository(ApplicationDbContext context)
+        private readonly IFileService _fileService;
+        public SeriesRepository(
+            ApplicationDbContext context,
+            IFileService fileService
+        )
         {
             _context = context;
+            _fileService = fileService;
+
         }
 
         public async Task<Series?> CreateSeries(Series series, IFormFile thumbnail)
         {
-            if (thumbnail != null && thumbnail.Length > 0)
-            {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                Directory.CreateDirectory(uploadsFolder); 
-
-                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(thumbnail.FileName); 
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await thumbnail.CopyToAsync(stream);
-
-                series.Thumbnail = $"/uploads/{uniqueFileName}"; 
-            }
-
             await _context.Series.AddAsync(series);
             await _context.SaveChangesAsync();
+
+            if (thumbnail != null && thumbnail.Length > 0)
+            {
+                var safeTitle = CustomFunction.SanitizeFolderName(series.Title);
+                var folder = $"uploads/series/{safeTitle.Trim().Replace("_", "")}/thumbnail";
+                series.Thumbnail = await _fileService.SaveFile(thumbnail, folder);
+
+                _context.Series.Update(series);
+                await _context.SaveChangesAsync();
+            }
+
             return series;
         }
 
 
         public async Task<Series?> DeleteSeries(int id)
         {
-            var series = await _context.Series.FirstOrDefaultAsync(e => e.Id == id);
+            var filePaths = new List<string>();
+
+            var series = await _context.Series
+                .Include(s => s.Episodes)
+                .ThenInclude(e => e.Video)
+                .FirstOrDefaultAsync(e => e.Id == id);
 
             if(series == null)
             {
@@ -53,14 +61,19 @@ namespace api.Repositories
 
             if (!string.IsNullOrWhiteSpace(series.Thumbnail))
             {
-                var thumbnailPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", series.Thumbnail.TrimStart('/'));
-
-                if (File.Exists(thumbnailPath))
-                {
-                    File.Delete(thumbnailPath);
-                }
+                filePaths.Add(series.Thumbnail);
             }
 
+            foreach (var episode in series.Episodes)
+            {
+                if (!string.IsNullOrWhiteSpace(episode.Thumbnail))
+                    filePaths.Add(episode.Thumbnail);
+
+                if (episode.Video != null && !string.IsNullOrWhiteSpace(episode.Video.VideoUrl))
+                    filePaths.Add(episode.Video.VideoUrl);
+            }
+
+            _fileService.DeleteFiles(filePaths);
             _context.Series.Remove(series);
             await _context.SaveChangesAsync();
             return series;

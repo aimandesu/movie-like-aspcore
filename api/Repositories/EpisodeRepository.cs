@@ -15,91 +15,112 @@ namespace api.Repositories
     public class EpisodeRepository : IEpisodeRepository
     {
         private readonly ApplicationDbContext _context;
-        public EpisodeRepository(ApplicationDbContext context)
+        private readonly IFileService _fileService;
+        public EpisodeRepository(
+            ApplicationDbContext context,
+            IFileService fileService
+        )
         {
             _context = context;
+            _fileService = fileService;
         }
         public async Task<Episode?> CreateEpisode(
-            Episode episode, 
-            IFormFile thumbnail, 
+            Episode episode,
+            IFormFile thumbnail,
             IFormFile file
         )
         {
+            var series = await _context.Series.FindAsync(episode.SeriesId);
+            if (series == null) return null;
+
+            var safeTitle = CustomFunction.SanitizeFolderName(series.Title);
+
             if (thumbnail != null && thumbnail.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-                Directory.CreateDirectory(uploadsFolder); 
-
-                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(thumbnail.FileName); 
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await thumbnail.CopyToAsync(stream);
-
-                episode.Thumbnail = $"/uploads/{uniqueFileName}"; 
+                var thumbFolder = $"uploads/series/{safeTitle.Trim().Replace("_", "")}/episode";
+                episode.Thumbnail = await _fileService.SaveFile(thumbnail, thumbFolder);
             }
 
+    
             if (file != null && file.Length > 0)
             {
-              
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "videos"); // adjust to your project structure
-                Directory.CreateDirectory(uploadsFolder); 
-
-                var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName); 
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await file.CopyToAsync(stream);
+                var videoFolder = $"uploads/series/{safeTitle.Trim().Replace("_", "")}/video";
+                var videoPath = await _fileService.SaveFile(file, videoFolder);
 
                 var video = new Video
                 {
-                    VideoUrl = $"/videos/{uniqueFileName}", 
-                    Duration = 0, 
+                    VideoUrl = videoPath,
+                    Duration = 0,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     ViewCount = 0,
-                    Episode = null
+                    Episode = episode 
                 };
-          
-                // episode.Series = await _context.Series.FindAsync(episode.SeriesId); //kena ke ni
-                video.Episode = episode;
+
                 _context.Videos.Add(video);
-                _context.Episodes.Add(episode);
-                }
-               
-                await _context.SaveChangesAsync();
+            }
 
-                return episode;
+            _context.Episodes.Add(episode);
+            await _context.SaveChangesAsync();
+
+            return episode;
         }
 
 
-        public Task<Episode?> DeleteEpisode(int id)
+        public async Task<Episode?> DeleteEpisode(int id)
         {
-            throw new NotImplementedException();
+            var filePaths = new List<string>();
+
+            var episode = await _context.Episodes
+                .Include(e => e.Video)
+                .FirstOrDefaultAsync(e => e.Id == id);
+
+            if (episode == null)
+            {
+                return null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(episode.Thumbnail))
+            {
+                filePaths.Add(episode.Thumbnail);
+            }
+
+            if (episode.Video != null && !string.IsNullOrWhiteSpace(episode.Video.VideoUrl))
+            {
+                filePaths.Add(episode.Video.VideoUrl);
+                _context.Videos.Remove(episode.Video);
+            }
+
+            _fileService.DeleteFiles(filePaths);
+            _context.Episodes.Remove(episode);
+            await _context.SaveChangesAsync();
+
+            return episode;
         }
+
 
         public async Task<List<Episode>> GetAllEpisodes(EpisodeQueryObject queryObject)
         {
-            throw new NotImplementedException();
+            // throw new NotImplementedException();
 
             // return await _context.Episodes
             //     .Include(e => e.Series)
             //     .Where(e => e.Series.Title.ToLower() == queryObject.SeriesTitle.ToLower())
             //     .ToListAsync();
 
-            // var query = _context.Episodes
-            //     .Include(e => e.Series)
-            //     .AsQueryable();
+            var episodes = _context.Episodes
+                .Include(e => e.Series)
+                .AsQueryable();
 
-            // if (!string.IsNullOrWhiteSpace(queryObject.SeriesTitle))
-            // {
-            //     query = query.Where(e =>
-            //         e.Series.Title.ToLower() == queryObject.SeriesTitle.ToLower());
-            // }
+            if (!string.IsNullOrWhiteSpace(queryObject.SeriesTitle))
+            {
+                episodes = episodes.Where(e =>
+                    e.Series.Title.ToLower() == queryObject.SeriesTitle.ToLower());
+            }
 
-            // var episodes = await query.ToListAsync();
+             var skipNumber = (queryObject.PageNumber - 1) * queryObject.PageSize;
 
-            // return episodes;
+            return await episodes.Skip(skipNumber).Take(queryObject.PageSize).ToListAsync();
         }
 
         public async Task<Episode?> GetEpisode(int id)

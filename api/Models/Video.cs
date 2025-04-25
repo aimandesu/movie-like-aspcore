@@ -16,6 +16,7 @@ namespace api.Models
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public int ViewCount { get; set; }
+        public int EpisodeId { get; set; }
         //Navigation property
         public Episode? Episode { get; set; }
         public History? History { get; set; }

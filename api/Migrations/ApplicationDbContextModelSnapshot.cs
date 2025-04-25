@@ -317,7 +317,8 @@ namespace api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EpisodeId");
+                    b.HasIndex("EpisodeId")
+                        .IsUnique();
 
                     b.HasIndex("HistoryId");
 
@@ -448,8 +449,8 @@ namespace api.Migrations
             modelBuilder.Entity("api.Models.Video", b =>
                 {
                     b.HasOne("api.Models.Episode", "Episode")
-                        .WithMany()
-                        .HasForeignKey("EpisodeId")
+                        .WithOne("Video")
+                        .HasForeignKey("api.Models.Video", "EpisodeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -479,6 +480,11 @@ namespace api.Migrations
                     b.Navigation("Series");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("api.Models.Episode", b =>
+                {
+                    b.Navigation("Video");
                 });
 
             modelBuilder.Entity("api.Models.History", b =>

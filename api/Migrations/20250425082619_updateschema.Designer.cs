@@ -12,8 +12,8 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250424031918_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250425082619_updateschema")]
+    partial class updateschema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -101,15 +101,9 @@ namespace api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("VideoId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("SeriesId");
-
-                    b.HasIndex("VideoId")
-                        .IsUnique();
 
                     b.ToTable("Episodes");
                 });
@@ -212,8 +206,7 @@ namespace api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId")
-                        .IsUnique();
+                    b.HasIndex("CategoryId");
 
                     b.HasIndex("SeriesId");
 
@@ -255,8 +248,7 @@ namespace api.Migrations
 
                     b.HasIndex("SeriesId");
 
-                    b.HasIndex("TagId")
-                        .IsUnique();
+                    b.HasIndex("TagId");
 
                     b.ToTable("TagCategories");
                 });
@@ -307,31 +299,29 @@ namespace api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Duration")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EpisodeId")
                         .HasColumnType("int");
 
                     b.Property<int?>("HistoryId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Thumbnail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("VideoUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ViewCount")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EpisodeId")
+                        .IsUnique();
 
                     b.HasIndex("HistoryId");
 
@@ -388,15 +378,7 @@ namespace api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("api.Models.Video", "Video")
-                        .WithOne("Episode")
-                        .HasForeignKey("api.Models.Episode", "VideoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Series");
-
-                    b.Navigation("Video");
                 });
 
             modelBuilder.Entity("api.Models.History", b =>
@@ -432,8 +414,8 @@ namespace api.Migrations
             modelBuilder.Entity("api.Models.SeriesCategory", b =>
                 {
                     b.HasOne("api.Models.Category", "Category")
-                        .WithOne("SeriesCategory")
-                        .HasForeignKey("api.Models.SeriesCategory", "CategoryId")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -457,8 +439,8 @@ namespace api.Migrations
                         .IsRequired();
 
                     b.HasOne("api.Models.Tag", "Tag")
-                        .WithOne("TagCategory")
-                        .HasForeignKey("api.Models.TagCategory", "TagId")
+                        .WithMany()
+                        .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -469,9 +451,17 @@ namespace api.Migrations
 
             modelBuilder.Entity("api.Models.Video", b =>
                 {
+                    b.HasOne("api.Models.Episode", "Episode")
+                        .WithOne("Video")
+                        .HasForeignKey("api.Models.Video", "EpisodeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("api.Models.History", "History")
                         .WithMany("Videos")
                         .HasForeignKey("HistoryId");
+
+                    b.Navigation("Episode");
 
                     b.Navigation("History");
                 });
@@ -495,9 +485,9 @@ namespace api.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("api.Models.Category", b =>
+            modelBuilder.Entity("api.Models.Episode", b =>
                 {
-                    b.Navigation("SeriesCategory");
+                    b.Navigation("Video");
                 });
 
             modelBuilder.Entity("api.Models.History", b =>
@@ -520,11 +510,6 @@ namespace api.Migrations
                     b.Navigation("Wishlists");
                 });
 
-            modelBuilder.Entity("api.Models.Tag", b =>
-                {
-                    b.Navigation("TagCategory");
-                });
-
             modelBuilder.Entity("api.Models.User", b =>
                 {
                     b.Navigation("Comments");
@@ -534,12 +519,6 @@ namespace api.Migrations
                     b.Navigation("Impressions");
 
                     b.Navigation("Wishlists");
-                });
-
-            modelBuilder.Entity("api.Models.Video", b =>
-                {
-                    b.Navigation("Episode")
-                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }
