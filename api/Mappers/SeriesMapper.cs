@@ -23,5 +23,34 @@ namespace api.Mappers
                 TagCategories = [.. series.TagCategories.Select(sc => sc.ToTagCategoryDto())],
             };
         }
+
+        public static SeriesEpisodeDto ToSeriesEpisodeDto(this Series series)
+        {
+            return new SeriesEpisodeDto
+            {
+                Id = series.Id,
+                Title = series.Title,
+                Description = series.Description,
+                Thumbnail = series.Thumbnail,
+                CreatedAt = series.CreatedAt,
+                SeriesFormat = series.SeriesFormat,
+                SeriesCategories = [.. series.SeriesCategories.Select(sc => sc.ToSeriesCategoryDto())],
+                TagCategories = [.. series.TagCategories.Select(sc => sc.ToTagCategoryDto())],
+                // Episodes = [.. series.Episodes.Select(sc => sc.ToEpisodeDto())]
+                Seasons = series.Episodes
+                    .GroupBy(e => e.Season) // Group by Season (null = movies)
+                    .OrderBy(g => g.Key ?? int.MaxValue) // Seasons first, then movies
+                    .Select(g => new SeasonDto
+                    {
+                        SeasonNumber = g.Key, // null for movies
+                        Episodes = g
+                            .OrderBy(e => e.EpisodeNumber ?? int.MaxValue)
+                            .Select(e => e.ToEpisodeDto())
+                            .ToList()
+                    })
+                    .ToList()
+            };
+        }
+
     }
 }

@@ -88,8 +88,10 @@ namespace api.Repositories
         public async Task<List<Series>> GetAllSeries(SeriesQueryObject queryObject)
         {
             var query = _context.Series
-                // .Include(s => s.SeriesCategories)
-                // .ThenInclude(sc => sc.Category)
+                .Include(s => s.SeriesCategories)
+                    .ThenInclude(sc => sc.Category)
+                .Include(s => s.TagCategories)
+                    .ThenInclude(sc => sc.Tag)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(queryObject.Category))
@@ -107,10 +109,23 @@ namespace api.Repositories
 
         public async Task<Series?> GetSeries(int id)
         {
-            return await _context.Series
-            // .Include(e => e.SeriesCategories)
+            var series = await _context.Series
+            .Include(e => e.SeriesCategories)
+                 .ThenInclude(sc => sc.Category)
+            .Include(s => s.TagCategories)
+                    .ThenInclude(sc => sc.Tag)
             .Include(e => e.Episodes)
             .FirstOrDefaultAsync(i => i.Id == id);
+
+            // if (series != null && series.Episodes != null)
+            // {
+            //     series.Episodes = series.Episodes
+            //         .OrderBy(e => e.Season ?? int.MaxValue) // if Season is null, put it last
+            //         .ThenBy(e => e.EpisodeNumber ?? int.MaxValue) // if EpisodeNumber is null, put it last
+            //         .ToList();
+            // }
+
+            return series;
         }
 
         public async Task<Series?> UpdateSeries(int id, CreateUpdateSeriesDto dto, IFormFile? thumbnail = null)

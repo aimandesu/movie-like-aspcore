@@ -7,8 +7,7 @@ namespace api.Dtos.SeriesCategories
 {
     public class SeriesCategoriesDto
     {
-        public int Id { get; set; }
         public int CategoryId { get; set; }
-        public int SeriesId { get; set; }
+        public string Name { get; set; } = string.Empty;
     }
 }

@@ -41,3 +41,4 @@ node_modules/
 orleans.codegen.cs
 api/Properties/PublishProfiles/
 api/appsettings.json
+api/wwwroot

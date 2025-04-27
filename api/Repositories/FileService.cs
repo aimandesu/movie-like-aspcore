@@ -17,13 +17,25 @@ namespace api.Repositories
         {
             if (string.IsNullOrWhiteSpace(relativePath)) return;
 
-            var fullPath = Path.Combine(_env.WebRootPath, relativePath.TrimStart('/'));
+            string webRootPath;
+
+            if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+            {
+                webRootPath = _env.WebRootPath; 
+            }
+            else
+            {
+                webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            }
+
+            var fullPath = Path.Combine(webRootPath, relativePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
 
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);
             }
         }
+
 
         public void DeleteFiles(IEnumerable<string> relativePaths)
         {

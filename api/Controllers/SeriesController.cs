@@ -56,7 +56,7 @@ namespace api.Controllers
                 return NotFound();
             }
 
-            return Ok(series);
+            return Ok(series.ToSeriesEpisodeDto());
 
         }
 

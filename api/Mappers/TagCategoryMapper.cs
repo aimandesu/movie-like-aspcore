@@ -13,9 +13,8 @@ namespace api.Mappers
         {
             return new TagCategoriesDto
             {
-                Id = tagCategory.Id,
-                TagId = tagCategory.TagId,
-                SeriesId =  tagCategory.SeriesId
+                TagId = tagCategory.Tag?.Id ?? 0,
+                Name = tagCategory.Tag?.Name ?? "",
             };
         }
     }
