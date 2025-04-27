@@ -39,8 +39,14 @@ namespace api.Repositories
             if (file == null || file.Length == 0)
                 throw new ArgumentException("File is empty.");
 
-            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", folder);
-            Directory.CreateDirectory(uploadsFolder); 
+            var uploadsFolder = Path.Combine(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
+                    ? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+                    : Directory.GetCurrentDirectory(),
+                folder
+            );
+
+            Directory.CreateDirectory(uploadsFolder);
 
             var uniqueFileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName); 
             var filePath = Path.Combine(uploadsFolder, uniqueFileName);

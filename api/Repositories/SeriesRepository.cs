@@ -130,7 +130,12 @@ namespace api.Repositories
 
             if (thumbnail != null && thumbnail.Length > 0)
             {
-                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                var basePath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
+                    ? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+                    : Directory.GetCurrentDirectory();
+
+                var uploadsFolder = Path.Combine(basePath, "uploads");
+
                 Directory.CreateDirectory(uploadsFolder);
 
                 var uniqueFileName = $"{Guid.NewGuid()}_{thumbnail.FileName}";

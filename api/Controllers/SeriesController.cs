@@ -137,7 +137,12 @@ namespace api.Controllers
             {
                 if (!string.IsNullOrEmpty(series.Thumbnail))
                 {
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", series.Thumbnail.TrimStart('/'));
+                    var basePath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
+                        ? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+                        : Directory.GetCurrentDirectory();
+
+                    var filePath = Path.Combine(basePath, series.Thumbnail.TrimStart('/'));
+
                     if (System.IO.File.Exists(filePath))
                     {
                         System.IO.File.Delete(filePath);

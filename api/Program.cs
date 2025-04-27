@@ -7,6 +7,7 @@ using api.Repositories;
 // using api.Interfaces;
 // using api.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,10 +36,20 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    
+    app.UseExceptionHandler("/error-development");
+}
+else
+{
+    app.UseExceptionHandler("/error");
+    app.UseStaticFiles(
+    new StaticFileOptions
+    {
+        FileProvider = new PhysicalFileProvider(
+            Path.Combine(Directory.GetCurrentDirectory(), "uploads")),
+        RequestPath = "/uploads"
+    });
 }
 
-app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.MapControllers();
 app.Run();

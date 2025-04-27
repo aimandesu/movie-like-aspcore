@@ -39,3 +39,5 @@ ClientBin/
 *.publishsettings
 node_modules/
 orleans.codegen.cs
+api/Properties/PublishProfiles/
+appsettings.json
