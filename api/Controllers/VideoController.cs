@@ -85,5 +85,12 @@ namespace api.Controllers
             
         }
 
+        [HttpGet]
+        [Route("stream/{id}")]
+        public async Task GetStream(int id)
+        {
+            await _videoRepo.StreamVideo(id, Response.Body, Request, Response);
+        }
+
     }
 }

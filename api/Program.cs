@@ -3,6 +3,8 @@ using api.Data;
 using api.Helpers;
 using api.Interfaces;
 using api.Repositories;
+using Microsoft.AspNetCore.Http.Features;
+
 
 
 // using api.Interfaces;
@@ -32,6 +34,27 @@ builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IVideoRepository, VideoRepository>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 104857600; // 100MB
+});
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.MaxRequestBodySize = 104857600; // 100MB
+});
+
+
+// builder.Services.Configure<FormOptions>(options =>
+// {
+//     options.MultipartBodyLengthLimit = long.MaxValue; 
+// });
+
+// builder.WebHost.ConfigureKestrel(serverOptions =>
+// {
+//     serverOptions.Limits.MaxRequestBodySize = long.MaxValue; 
+// });
 
 var app = builder.Build();
 

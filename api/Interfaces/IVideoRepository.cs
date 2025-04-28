@@ -20,5 +20,11 @@ namespace api.Interfaces
             CreateUpdateVideoDto dto, 
             IFormFile? video
         );
+        Task StreamVideo(
+            int id, 
+            Stream outputStream, 
+            HttpRequest request, 
+            HttpResponse response
+        );
     }
 }
