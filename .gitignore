@@ -42,3 +42,4 @@ orleans.codegen.cs
 api/Properties/PublishProfiles/
 api/appsettings.json
 api/wwwroot
+api/Migrations
