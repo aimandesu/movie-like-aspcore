@@ -13,4 +13,14 @@
     <PackageReference Include="Microsoft.Extensions.FileProviders.Physical" Version="9.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="wwwroot\**" />
+  </ItemGroup>
+
+  <Target Name="ExcludeFolderFromPublish" AfterTargets="CollectFilesToPublish">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="wwwroot\**" />
+    </ItemGroup>
+  </Target>
+
 </Project>

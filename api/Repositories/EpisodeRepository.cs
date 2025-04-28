@@ -16,23 +16,41 @@ namespace api.Repositories
     public partial class EpisodeRepository : IEpisodeRepository
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<EpisodeRepository> _logger;
         private readonly IFileService _fileService;
         public EpisodeRepository(
             ApplicationDbContext context,
-            IFileService fileService
+            IFileService fileService,
+            ILogger<EpisodeRepository> logger
         )
         {
             _context = context;
             _fileService = fileService;
+            _logger = logger;
         }
-        public async Task<Episode?> CreateEpisode(
+        public async Task<Episode?> CreateEpisode( //Task<ResultResponse<Episode>>
             Episode episode,
             IFormFile thumbnail,
             IFormFile file
         )
         {
-            var series = await _context.Series.FindAsync(episode.SeriesId);
-            if (series == null) return null;
+            var series = await _context.Series
+                .Include(s => s.Episodes)
+                .FirstOrDefaultAsync(s => s.Id == episode.SeriesId);
+
+            if (series == null) {
+                //  _logger.LogInformation("Found series: {Title}", series);
+                throw new KeyNotFoundException($"Series with ID {episode.SeriesId} not found");
+                //  return ResultResponse<Episode>.Fail(new NotFoundError { Description = "Series not found" });
+            }
+
+            if(series.Episodes.Any(a => 
+                a.Season == episode.Season 
+                && a.EpisodeNumber == episode.EpisodeNumber
+            )){
+                throw new InvalidOperationException($"Episode already exists in season {episode.Season} with number {episode.EpisodeNumber}");
+                //  return ResultResponse<Episode>.Fail(new ConflictError { Description = "Episode already exists in this season and number" });
+            }
 
             var safeTitle = MyRegex()
                     .Replace(CustomFunction
@@ -67,7 +85,7 @@ namespace api.Repositories
             _context.Episodes.Add(episode);
             await _context.SaveChangesAsync();
 
-            return episode;
+            return episode; //ResultResponse<Episode>.Success(episode);
         }
 
 

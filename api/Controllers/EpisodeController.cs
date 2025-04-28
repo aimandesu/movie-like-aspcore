@@ -48,14 +48,14 @@ namespace api.Controllers
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
             
-            var series = await _episodeRepo.GetEpisode(id);
+            var episode = await _episodeRepo.GetEpisode(id);
 
-            if(series == null)
+            if(episode == null)
             {
                 return NotFound();
             }
 
-            return Ok(series);
+            return Ok(episode.ToEpisodeVideoDto());
 
         }
 
@@ -76,9 +76,28 @@ namespace api.Controllers
                 Thumbnail = dto.Thumbnail,
                 CreatedAt = DateTime.UtcNow,
                 SeriesId = dto.SeriesId,
+                Season = dto.Season,
+                EpisodeNumber = dto.EpisodeNumber,
             };
 
-            var created = await _episodeRepo.CreateEpisode(episode, thumbnail, file);
+            var result = await _episodeRepo.CreateEpisode(episode, thumbnail, file);
+
+            // if (!result.IsSuccess)
+            // {
+
+            //     if (result.Error is NotFoundError)
+            //     {
+            //         return NotFound(new { error = result.Error.Description });
+            //     }
+            //     else if (result.Error is ConflictError)
+            //     {
+            //         return Conflict(new { error = result.Error.Description });
+            //     }
+            //     else
+            //     {
+            //         return BadRequest(new { error = result?.Error?.Description });
+            //     }
+            // }
             
             return CreatedAtAction(nameof(GetEpisode), new { id = episode.Id }, episode.ToEpisodeDto());
         }

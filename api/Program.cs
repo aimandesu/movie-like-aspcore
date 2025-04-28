@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using api.Data;
+using api.Helpers.api.Middleware;
 using api.Interfaces;
 using api.Repositories;
 
@@ -29,7 +30,8 @@ builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IEpisodeRepository, EpisodeRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IVideoRepository, VideoRepository>();
-
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 

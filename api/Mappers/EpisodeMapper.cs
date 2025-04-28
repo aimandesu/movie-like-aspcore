@@ -23,5 +23,22 @@ namespace api.Mappers
                 SeriesId = episode.SeriesId,
             };
         }
+
+        public static EpisodeVideoDto ToEpisodeVideoDto(this Episode episode)
+        {
+            return new EpisodeVideoDto
+            {
+                Id = episode.Id,
+                Title = episode.Title,
+                Description = episode.Description,
+                Thumbnail  = episode.Thumbnail,
+                CreatedAt = episode.CreatedAt,
+                Season = episode.Season,
+                EpisodeNumber  = episode.EpisodeNumber,
+                SeriesId = episode.SeriesId,
+                Video = episode?.Video?.ToVideoDto(),
+            };
+        }
+
     }
 }
