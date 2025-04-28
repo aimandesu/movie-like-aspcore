@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 using api.Data;
-using api.Helpers.api.Middleware;
+using api.Helpers;
 using api.Interfaces;
 using api.Repositories;
 
