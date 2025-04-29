@@ -125,6 +125,7 @@ namespace api.Repositories
             .Include(s => s.TagCategories)
                     .ThenInclude(sc => sc.Tag)
             .Include(e => e.Episodes)
+            .Include(c => c.Comments)
             .FirstOrDefaultAsync(i => i.Id == id);
 
             // if (series != null && series.Episodes != null)

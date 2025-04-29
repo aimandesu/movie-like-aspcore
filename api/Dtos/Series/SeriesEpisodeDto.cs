@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using api.Dtos.Comment;
 using api.Dtos.Episode;
 using api.Dtos.SeriesCategories;
 using api.Dtos.TagCategories;
@@ -21,6 +22,7 @@ namespace api.Dtos.Series
         public List<TagCategoriesDto> TagCategories { get; set; } = [];
         // public List<EpisodeDto> Episodes { get; set; } = [];
         public List<SeasonDto> Seasons { get; set; } = new();
+        public List<CommentDto> Comments { get; set; } = [];
     }
 }
 

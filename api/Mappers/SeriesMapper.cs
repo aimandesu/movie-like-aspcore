@@ -48,7 +48,8 @@ namespace api.Mappers
                             .Select(e => e.ToEpisodeDto())
                             .ToList()
                     })
-                    .ToList()
+                    .ToList(),
+                Comments = [.. series.Comments.Select(c => c.ToCommentDto())],
             };
         }
 
