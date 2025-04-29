@@ -31,7 +31,6 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        [Authorize]
         public async Task<IActionResult> GetAllSeries(
             [FromQuery] SeriesQueryObject queryObject,
             [FromQuery] PaginationQueryObject pagination
