@@ -8,7 +8,7 @@ namespace api.Models
     public class History
     {
         public int Id { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public int VideoId { get; set; }
         //navigation propery
         public List<Video> Videos { get; set; } = [];

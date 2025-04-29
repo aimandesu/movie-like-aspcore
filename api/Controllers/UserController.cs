@@ -100,5 +100,12 @@ namespace api.Controllers
             );
         }
 
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            return Ok(new { message = "User logged out successfully" });
+        }
+
     }
 }

@@ -8,6 +8,7 @@ using api.Helpers;
 using api.Interfaces;
 using api.Mappers;
 using api.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,12 +31,16 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllSeries([FromQuery] SeriesQueryObject queryObject)
+        [Authorize]
+        public async Task<IActionResult> GetAllSeries(
+            [FromQuery] SeriesQueryObject queryObject,
+            [FromQuery] PaginationQueryObject pagination
+            )
         {
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var series =  await _seriesRepo.GetAllSeries(queryObject);
+            var series =  await _seriesRepo.GetAllSeries(queryObject, pagination);
 
             var seriesDto = series.Select(s => s.ToSeriesDto());
 

@@ -38,6 +38,7 @@ builder.Services.AddScoped<IEpisodeRepository, EpisodeRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IVideoRepository, VideoRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
 //Global exception handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

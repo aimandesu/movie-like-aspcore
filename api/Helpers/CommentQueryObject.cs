@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 namespace api.Helpers
 {
-    public class SeriesQueryObject
+    public class CommentQueryObject
     {
-        public string? Category { get; set; }
+        public bool IsDescending {get;set;} = false;
+        
     }
 }

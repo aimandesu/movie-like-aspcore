@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using api.Data;
 using api.Interfaces;
 using api.Models;
 using Microsoft.IdentityModel.Tokens;
@@ -15,11 +16,27 @@ namespace api.Service
     {
         private readonly IConfiguration _config;
         private readonly SymmetricSecurityKey _key;
-        public TokenService(IConfiguration config)
+        private readonly ApplicationDbContext _context;
+        public TokenService(
+            IConfiguration config,
+            ApplicationDbContext context
+        )
         {
             _config = config;
             _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["JWT:SigningKey"]));
+            _context = context;
         }
+
+        public Task BlacklistTokenAsync(string token)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CleanupExpiredTokensAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public string CreateToken(User user)
         {
             var claims = new List<Claim>
@@ -43,6 +60,11 @@ namespace api.Service
             var token = tokenHandler.CreateToken(tokenDescriptor);
 
             return tokenHandler.WriteToken(token);
+        }
+
+        public Task<bool> IsTokenBlacklistedAsync(string token)
+        {
+            throw new NotImplementedException();
         }
     }
 }

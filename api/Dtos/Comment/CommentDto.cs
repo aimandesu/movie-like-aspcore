@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace api.Models
+namespace api.Dtos.Comment
 {
-    public class Wishlist
+    public class CommentDto
     {
         public int Id { get; set; }
-        public int SeriesId { get; set; }
+        public string Discussion { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
-        //Navigation property
-        public User? User { get; set; }
-        public Series? Series { get; set; }
+        public int SeriesId { get; set; }
+        public DateTime CreatedAt { get; set; }
     }
 }

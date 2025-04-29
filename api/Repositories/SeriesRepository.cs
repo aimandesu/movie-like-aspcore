@@ -46,6 +46,13 @@ namespace api.Repositories
                 await _context.SaveChangesAsync();
             }
 
+            series = await _context.Series
+                    .Include(s => s.SeriesCategories)
+                        .ThenInclude(sc => sc.Category)
+                    .Include(s => s.TagCategories)
+                        .ThenInclude(tc => tc.Tag)
+                    .FirstAsync(s => s.Id == series.Id);
+
             return series;
         }
 
@@ -85,7 +92,10 @@ namespace api.Repositories
 
         }
 
-        public async Task<List<Series>> GetAllSeries(SeriesQueryObject queryObject)
+        public async Task<List<Series>> GetAllSeries(
+            SeriesQueryObject queryObject,
+            PaginationQueryObject pagination
+        )
         {
             var query = _context.Series
                 .Include(s => s.SeriesCategories)
@@ -102,9 +112,9 @@ namespace api.Repositories
                         );
             }
 
-            var skipNumber = (queryObject.PageNumber - 1) * queryObject.PageSize;
+            var skipNumber = (pagination.PageNumber - 1) * pagination.PageSize;
 
-            return await query.Skip(skipNumber).Take(queryObject.PageSize).ToListAsync();
+            return await query.Skip(skipNumber).Take(pagination.PageSize).ToListAsync();
         }
 
         public async Task<Series?> GetSeries(int id)

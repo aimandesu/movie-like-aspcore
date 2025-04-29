@@ -10,7 +10,10 @@ namespace api.Interfaces
 {
     public interface ISeriesRepository
     {
-        Task<List<Series>> GetAllSeries(SeriesQueryObject queryObject);
+        Task<List<Series>> GetAllSeries(
+            SeriesQueryObject queryObject,
+            PaginationQueryObject pagination
+        );
         Task<Series?> GetSeries(int id);
         Task<Series?> CreateSeries(Series series, IFormFile file);
         Task<Series?> DeleteSeries(int id);

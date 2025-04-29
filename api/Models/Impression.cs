@@ -11,7 +11,7 @@ namespace api.Models
         public bool IsRecommended { get; set; }
         public int Rating { get; set; }
         public int SeriesId { get; set; }
-        public int UserId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         //Navigation property
         public User? User { get; set; }
         public Series? Series { get; set; }
