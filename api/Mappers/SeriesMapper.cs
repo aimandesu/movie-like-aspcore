@@ -9,11 +9,12 @@ namespace api.Mappers
 {
     public static class SeriesMapper
     {
-        public static SeriesDto ToSeriesDto (this Series series)
+        public static SeriesDto ToSeriesDto(this Series series)
         {
             return new SeriesDto
             {
                 Id = series.Id,
+                Slug = series.Slug,
                 Title = series.Title,
                 Description = series.Description,
                 Thumbnail = series.Thumbnail,
@@ -29,6 +30,7 @@ namespace api.Mappers
             return new SeriesEpisodeDto
             {
                 Id = series.Id,
+                Slug = series.Slug,
                 Title = series.Title,
                 Description = series.Description,
                 Thumbnail = series.Thumbnail,

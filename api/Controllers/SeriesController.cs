@@ -36,10 +36,10 @@ namespace api.Controllers
             [FromQuery] PaginationQueryObject pagination
             )
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var series =  await _seriesRepo.GetAllSeries(queryObject, pagination);
+            var series = await _seriesRepo.GetAllSeries(queryObject, pagination);
 
             var seriesDto = series.Select(s => s.ToSeriesDto());
 
@@ -47,15 +47,15 @@ namespace api.Controllers
 
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetSeries([FromRoute] int id)
+        [HttpGet("{slug}", Name = "GetSeriesBySlug")]
+        public async Task<IActionResult> GetSeries([FromRoute] string slug)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
-            var series = await _seriesRepo.GetSeries(id);
 
-            if(series == null)
+            var series = await _seriesRepo.GetSeries(slug);
+
+            if (series == null)
             {
                 return NotFound();
             }
@@ -67,7 +67,7 @@ namespace api.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateSeries([FromForm] CreateUpdateSeriesDto dto, [FromForm] IFormFile thumbnail)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var series = new Series
@@ -75,7 +75,8 @@ namespace api.Controllers
                 Title = dto.Title,
                 Description = dto.Description,
                 Thumbnail = dto.Thumbnail,
-                SeriesFormat = SeriesFormat.Single,
+                Slug = CustomFunction.GenerateSlug(dto.Title),
+                SeriesFormat = SeriesFormat.None,
                 CreatedAt = DateTime.UtcNow,
                 SeriesCategories = [.. dto.CategoryIds.Select(catId => new SeriesCategory
                 {
@@ -88,8 +89,8 @@ namespace api.Controllers
             };
 
             var created = await _seriesRepo.CreateSeries(series, thumbnail);
-            
-            return CreatedAtAction(nameof(GetSeries), new { id = series.Id }, series.ToSeriesDto());
+
+            return CreatedAtRoute("GetSeriesBySlug", new { slug = created.Slug }, created.ToSeriesDto());
         }
 
         [HttpPut("{id:int}")]
@@ -115,18 +116,18 @@ namespace api.Controllers
         [Route("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var series = await _seriesRepo.DeleteSeries(id);
 
-            if(series == null)
+            if (series == null)
             {
                 return NotFound();
             }
 
             return NoContent();
-            
+
         }
 
         [HttpDelete("delete_all_series")]

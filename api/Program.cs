@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using api.Data;
 using api.Helpers;
+using api.Interceptor;
 using api.Interfaces;
 using api.Models;
 using api.Repositories;
@@ -26,8 +27,11 @@ builder.Services.AddControllers()
     });
 
 //Connection
-builder.Services.AddDbContext<ApplicationDbContext>(options=> {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+builder.Services.AddDbContext<ApplicationDbContext>((options) =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+        .AddInterceptors(new SlugInterceptor())
+        .AddInterceptors(new SeriesFormatInterceptor());
 });
 
 //Interface and Repository 
@@ -77,14 +81,16 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 })
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-builder.Services.AddAuthentication(options => {
-    options.DefaultAuthenticateScheme = 
-    options.DefaultChallengeScheme = 
-    options.DefaultForbidScheme = 
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme =
+    options.DefaultChallengeScheme =
+    options.DefaultForbidScheme =
     options.DefaultScheme =
     options.DefaultSignInScheme =
     options.DefaultSignOutScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(options => {
+}).AddJwtBearer(options =>
+{
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,

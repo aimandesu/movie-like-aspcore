@@ -14,7 +14,7 @@ namespace api.Interfaces
             SeriesQueryObject queryObject,
             PaginationQueryObject pagination
         );
-        Task<Series?> GetSeries(int id);
+        Task<Series?> GetSeries(string slug);
         Task<Series?> CreateSeries(Series series, IFormFile file);
         Task<Series?> DeleteSeries(int id);
         Task<Series?> UpdateSeries(int id, CreateUpdateSeriesDto dto, IFormFile? thumbnail = null);

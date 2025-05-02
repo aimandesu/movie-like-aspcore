@@ -29,15 +29,22 @@ namespace api.Repositories
 
         public async Task<Series?> CreateSeries(Series series, IFormFile thumbnail)
         {
+            var currentSeries = await _context.Series.ToListAsync();
+
+            if (currentSeries.Any(a => a.Title == series.Title))
+            {
+                throw new InvalidOperationException($"Title {series.Title} already exists");
+            }
+
             await _context.Series.AddAsync(series);
             await _context.SaveChangesAsync();
 
             if (thumbnail != null && thumbnail.Length > 0)
             {
-                 var safeTitle = MyRegex()
-                                .Replace(CustomFunction
-                                .SanitizeFolderName(series.Title)
-                                .Trim().ToLower().Replace(" ", "_"), "");
+                var safeTitle = MyRegex()
+                               .Replace(CustomFunction
+                               .SanitizeFolderName(series.Title)
+                               .Trim().ToLower().Replace(" ", "_"), "");
 
                 var folder = $"uploads/series/{safeTitle}/thumbnail";
                 series.Thumbnail = await _fileService.SaveFile(thumbnail, folder);
@@ -66,7 +73,7 @@ namespace api.Repositories
                 .ThenInclude(e => e.Video)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            if(series == null)
+            if (series == null)
             {
                 return null;
             }
@@ -107,7 +114,7 @@ namespace api.Repositories
             if (!string.IsNullOrWhiteSpace(queryObject.Category))
             {
                 query = query.Where(s =>
-                        s.SeriesCategories.Any(sc => 
+                        s.SeriesCategories.Any(sc =>
                         sc.Category.Name == queryObject.Category)
                         );
             }
@@ -117,7 +124,7 @@ namespace api.Repositories
             return await query.Skip(skipNumber).Take(pagination.PageSize).ToListAsync();
         }
 
-        public async Task<Series?> GetSeries(int id)
+        public async Task<Series?> GetSeries(string slug)
         {
             var series = await _context.Series
             .Include(e => e.SeriesCategories)
@@ -126,7 +133,7 @@ namespace api.Repositories
                     .ThenInclude(sc => sc.Tag)
             .Include(e => e.Episodes)
             .Include(c => c.Comments)
-            .FirstOrDefaultAsync(i => i.Id == id);
+            .FirstOrDefaultAsync(i => i.Slug == slug);
 
             // if (series != null && series.Episodes != null)
             // {
@@ -154,6 +161,15 @@ namespace api.Repositories
             existingSeries.Title = dto.Title;
             existingSeries.Description = dto.Description;
 
+            var currentSeries = await _context.Series.ToListAsync();
+
+            if (currentSeries
+                    .Any(a => a.Id != existingSeries.Id &&
+              a.Title.Trim().Equals(existingSeries.Title.Trim(), StringComparison.OrdinalIgnoreCase)))
+            {
+                throw new InvalidOperationException($"Title '{dto.Title}' already exists");
+            }
+
             if (thumbnail != null && thumbnail.Length > 0)
             {
                 var basePath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
@@ -180,7 +196,7 @@ namespace api.Repositories
 
             foreach (var categoryToRemove in categoriesToRemove)
             {
-                _context.Remove(categoryToRemove);  
+                _context.Remove(categoryToRemove);
             }
 
             var tagsToRemove = existingSeries.TagCategories
@@ -189,13 +205,13 @@ namespace api.Repositories
 
             foreach (var tagToRemove in tagsToRemove)
             {
-                _context.Remove(tagToRemove);  
+                _context.Remove(tagToRemove);
             }
 
             //add categories and tags
             foreach (var categoryId in dto.CategoryIds)
             {
-                
+
                 if (!existingSeries.SeriesCategories.Any(sc => sc.CategoryId == categoryId))
                 {
                     existingSeries.SeriesCategories.Add(new SeriesCategory
@@ -208,7 +224,7 @@ namespace api.Repositories
 
             foreach (var tagId in dto.TagCategoryIds)
             {
-                
+
                 if (!existingSeries.TagCategories.Any(sc => sc.TagId == tagId))
                 {
                     existingSeries.TagCategories.Add(new TagCategory

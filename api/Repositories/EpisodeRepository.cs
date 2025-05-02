@@ -38,16 +38,18 @@ namespace api.Repositories
                 .Include(s => s.Episodes)
                 .FirstOrDefaultAsync(s => s.Id == episode.SeriesId);
 
-            if (series == null) {
+            if (series == null)
+            {
                 //  _logger.LogInformation("Found series: {Title}", series);
                 throw new KeyNotFoundException($"Series with ID {episode.SeriesId} not found");
                 //  return ResultResponse<Episode>.Fail(new NotFoundError { Description = "Series not found" });
             }
 
-            if(series.Episodes.Any(a => 
-                a.Season == episode.Season 
+            if (episode.Season != null && episode.EpisodeNumber != null && series.Episodes.Any(a =>
+                a.Season == episode.Season
                 && a.EpisodeNumber == episode.EpisodeNumber
-            )){
+            ))
+            {
                 throw new InvalidOperationException($"Episode already exists in season {episode.Season} with number {episode.EpisodeNumber}");
                 //  return ResultResponse<Episode>.Fail(new ConflictError { Description = "Episode already exists in this season and number" });
             }
@@ -63,7 +65,7 @@ namespace api.Repositories
                 episode.Thumbnail = await _fileService.SaveFile(thumbnail, thumbFolder);
             }
 
-    
+
             if (file != null && file.Length > 0)
             {
                 var videoFolder = $"uploads/series/{safeTitle}/video";
@@ -76,7 +78,7 @@ namespace api.Repositories
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     ViewCount = 0,
-                    Episode = episode 
+                    Episode = episode
                 };
 
                 _context.Videos.Add(video);
@@ -140,7 +142,7 @@ namespace api.Repositories
                     e.Series.Title.ToLower() == queryObject.SeriesTitle.ToLower());
             }
 
-             var skipNumber = (queryObject.PageNumber - 1) * queryObject.PageSize;
+            var skipNumber = (queryObject.PageNumber - 1) * queryObject.PageSize;
 
             return await episodes.Skip(skipNumber).Take(queryObject.PageSize).ToListAsync();
         }
