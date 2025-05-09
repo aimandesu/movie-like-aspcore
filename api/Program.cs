@@ -16,7 +16,19 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name:
+        MyAllowSpecificOrigins,
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200");
+        }
+    );
+});
 
 //To make Json recurring doesnt happen
 builder.Services.AddControllers()
@@ -34,8 +46,13 @@ builder.Services.AddDbContext<ApplicationDbContext>((options) =>
         .AddInterceptors(new SeriesFormatInterceptor());
 });
 
-//Interface and Repository 
-builder.Services.AddScoped<ISeriesRepository, SeriesRepository>();
+//Interface and Repository
+builder.Services.AddScoped<SeriesRepository>();
+builder.Services.AddScoped<ISeriesRepository, CachedSeriesRepository>();
+
+//Cached Memory
+builder.Services.AddMemoryCache();
+
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IEpisodeRepository, EpisodeRepository>();
@@ -124,6 +141,7 @@ else
     });
 }
 
+app.UseCors(MyAllowSpecificOrigins);
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

@@ -142,6 +142,24 @@ namespace api.Repositories
             //         .ThenBy(e => e.EpisodeNumber ?? int.MaxValue) // if EpisodeNumber is null, put it last
             //         .ToList();
             // }
+            // string key = $"slug-{slug}";
+
+            //Icached memory implementation
+            // return await _memoryCache.GetOrCreateAsync(key, async entry =>
+            // {
+            //     entry.SetAbsoluteExpiration(TimeSpan.FromMinutes(2));
+
+            //     var series = await _context.Series
+            //         .Include(e => e.SeriesCategories)
+            //             .ThenInclude(sc => sc.Category)
+            //         .Include(s => s.TagCategories)
+            //             .ThenInclude(sc => sc.Tag)
+            //         .Include(e => e.Episodes)
+            //         .Include(c => c.Comments)
+            //             .FirstOrDefaultAsync(i => i.Slug == slug);
+
+            //     return series;
+            // });
 
             return series;
         }
