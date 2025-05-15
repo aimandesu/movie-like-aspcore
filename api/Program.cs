@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using api.Data;
 using api.Helpers;
@@ -39,9 +40,26 @@ builder.Services.AddControllers()
     });
 
 //Connection
+
+var env = builder.Environment.EnvironmentName;
+
+string? connectionString;
+
+if (env == Environments.Development)
+{
+    var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    connectionString = builder.Configuration.GetConnectionString(
+        isWindows ? "WindowsConnection" : "LinuxConnection"
+    );
+}
+else
+{
+    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>((options) =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseSqlServer(connectionString)
         .AddInterceptors(new SlugInterceptor())
         .AddInterceptors(new SeriesFormatInterceptor());
 });
