@@ -11,6 +11,6 @@ namespace api.Dtos.Comment
         [Required]
         public string Discussion { get; set; } = string.Empty;
         [Required]
-        public int SeriesId { get; set; }
+        public int EpisodeId { get; set; }
     }
 }

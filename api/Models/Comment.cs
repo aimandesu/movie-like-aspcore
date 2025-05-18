@@ -11,8 +11,8 @@ namespace api.Models
         public string Discussion { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
-        public int SeriesId { get; set; }
+        public int EpisodeId { get; set; }
+        public Episode? Episode { get; set; }
         public User? User { get; set; }
-        public Series? Series { get; set; }
     }
 }

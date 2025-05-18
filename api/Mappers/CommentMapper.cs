@@ -16,7 +16,8 @@ namespace api.Mappers
                 Id = comment.Id,
                 Discussion = comment.Discussion,
                 UserId = comment.UserId,
-                SeriesId = comment.SeriesId,
+                Username = comment.User?.UserName ?? "",
+                // EpisodeId = comment.EpisodeId,
                 CreatedAt = comment.CreatedAt,
             };
         }

@@ -14,7 +14,7 @@ namespace api.Interfaces
         Task<List<Comment>> GetAllComments(
             PaginationQueryObject pagination,
             CommentQueryObject commentQuery,
-            int seriesId
+            int episodeId
         );
         Task<Comment?> GetComment(int id);
     }
