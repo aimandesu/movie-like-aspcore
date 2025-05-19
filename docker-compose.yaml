@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "DockerSQL2022_"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Standard"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    networks:
+      - app-network
+
+  api:
+    build: ./api
+    ports:
+      - "9260:8080"
+    depends_on:
+      - sqlserver
+    environment:
+      # This connection string is for inside the Docker network!
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=movieaspcore;User Id=sa;Password=DockerSQL2022_;TrustServerCertificate=true;
+    networks:
+      - app-network
+
+volumes:
+  sqlserver_data:
+
+networks:
+  app-network:
