@@ -16,7 +16,10 @@ A Movie/Series API - currently in Development
 
 1. If you use windows, please install WSL and Docker Desktop
 2. If you use Linux or MAC, please install docker and docker compose v2
-3. Run docker compose up --build
+```bash
+sudo apt install docker-compose-v2
+```
+4. Run docker compose up --build
 
 ### REST ENDPOINT
 
