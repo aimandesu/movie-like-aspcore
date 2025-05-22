@@ -61,6 +61,9 @@ DELETE - /api/categories/:id
 and others... the same. Too Lazy rn, will update later :/
 maybe ill do ui for all my api later........
 
+but for now 
+[Click here to view the API](https://www.postman.com/payload-specialist-8137764/workspace/aimanafiq-work-s/folder/33511040-72e75469-3896-4900-8e6a-b7420b139c01?action=share&creator=33511040&ctx=documentation&active-environment=33511040-bfecc31f-3951-40c2-9d95-753e310ce5b9)
+
 ## Screenshots
 
 ### Erd
