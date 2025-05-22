@@ -65,13 +65,26 @@ builder.Services.AddDbContext<ApplicationDbContext>((options) =>
         .AddInterceptors(new SeriesFormatInterceptor());
 });
 
-//Interface and Repository
-builder.Services.AddScoped<SeriesRepository>();
-builder.Services.AddScoped<ISeriesRepository, CachedSeriesRepository>();
+//redis caching
+builder.Services.AddStackExchangeRedisCache(options =>
+ {
+     options.Configuration = builder.Configuration.GetConnectionString("Redis");
+     options.InstanceName = "SampleInstance";
+ });
 
 //Cached Memory
 builder.Services.AddMemoryCache();
 
+//Interface and Repository cached
+//IMemory cached
+builder.Services.AddScoped<SeriesRepository>();
+builder.Services.AddScoped<ISeriesRepository, CachedSeriesRepository>();
+
+//Redis
+// builder.Services.AddScoped<EpisodeRepository>();
+// builder.Services.AddScoped<IEpisodeRepository, CachedEpisodeRepository>();
+
+//Interface and Repository
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IEpisodeRepository, EpisodeRepository>();

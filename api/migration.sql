@@ -50,6 +50,7 @@ CREATE TABLE [Categories] (
 CREATE TABLE [Series] (
     [Id] int NOT NULL IDENTITY,
     [Title] nvarchar(max) NOT NULL,
+    [Slug] nvarchar(max) NOT NULL,
     [Description] nvarchar(max) NOT NULL,
     [Thumbnail] nvarchar(max) NOT NULL,
     [CreatedAt] datetime2 NOT NULL,
@@ -115,17 +116,6 @@ CREATE TABLE [Histories] (
     CONSTRAINT [FK_Histories_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE
 );
 
-CREATE TABLE [Comments] (
-    [Id] int NOT NULL IDENTITY,
-    [Discussion] nvarchar(max) NOT NULL,
-    [UserId] nvarchar(450) NOT NULL,
-    [CreatedAt] datetime2 NOT NULL,
-    [SeriesId] int NOT NULL,
-    CONSTRAINT [PK_Comments] PRIMARY KEY ([Id]),
-    CONSTRAINT [FK_Comments_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE,
-    CONSTRAINT [FK_Comments_Series_SeriesId] FOREIGN KEY ([SeriesId]) REFERENCES [Series] ([Id]) ON DELETE CASCADE
-);
-
 CREATE TABLE [Episodes] (
     [Id] int NOT NULL IDENTITY,
     [Title] nvarchar(max) NOT NULL,
@@ -177,6 +167,19 @@ CREATE TABLE [TagCategories] (
     CONSTRAINT [FK_TagCategories_Tags_TagId] FOREIGN KEY ([TagId]) REFERENCES [Tags] ([Id]) ON DELETE CASCADE
 );
 
+CREATE TABLE [Comments] (
+    [Id] int NOT NULL IDENTITY,
+    [Discussion] nvarchar(max) NOT NULL,
+    [UserId] nvarchar(450) NOT NULL,
+    [CreatedAt] datetime2 NOT NULL,
+    [EpisodeId] int NOT NULL,
+    [SeriesId] int NULL,
+    CONSTRAINT [PK_Comments] PRIMARY KEY ([Id]),
+    CONSTRAINT [FK_Comments_AspNetUsers_UserId] FOREIGN KEY ([UserId]) REFERENCES [AspNetUsers] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_Comments_Episodes_EpisodeId] FOREIGN KEY ([EpisodeId]) REFERENCES [Episodes] ([Id]) ON DELETE CASCADE,
+    CONSTRAINT [FK_Comments_Series_SeriesId] FOREIGN KEY ([SeriesId]) REFERENCES [Series] ([Id])
+);
+
 CREATE TABLE [Videos] (
     [Id] int NOT NULL IDENTITY,
     [VideoUrl] nvarchar(max) NOT NULL,
@@ -213,6 +216,8 @@ CREATE INDEX [EmailIndex] ON [AspNetUsers] ([NormalizedEmail]);
 
 CREATE UNIQUE INDEX [UserNameIndex] ON [AspNetUsers] ([NormalizedUserName]) WHERE [NormalizedUserName] IS NOT NULL;
 
+CREATE INDEX [IX_Comments_EpisodeId] ON [Comments] ([EpisodeId]);
+
 CREATE INDEX [IX_Comments_SeriesId] ON [Comments] ([SeriesId]);
 
 CREATE INDEX [IX_Comments_UserId] ON [Comments] ([UserId]);
@@ -242,7 +247,7 @@ CREATE INDEX [IX_Wishlists_SeriesId] ON [Wishlists] ([SeriesId]);
 CREATE INDEX [IX_Wishlists_UserId] ON [Wishlists] ([UserId]);
 
 INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
-VALUES (N'20250429043442_initial', N'9.0.0');
+VALUES (N'20250520032836_Init', N'9.0.0');
 
 COMMIT;
 GO

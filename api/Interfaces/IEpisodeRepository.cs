@@ -10,17 +10,20 @@ namespace api.Interfaces
 {
     public interface IEpisodeRepository
     {
-        Task<List<Episode>> GetAllEpisodes(EpisodeQueryObject queryObject);
+        Task<List<Episode>?> GetAllEpisodes(
+            EpisodeQueryObject queryObject,
+            CancellationToken cancellationToken
+        );
         Task<Episode?> GetEpisode(int id);
         Task<Episode?> CreateEpisode(
-            Episode episode, 
+            Episode episode,
             IFormFile thumbnail,
             IFormFile file
         );
         Task<Episode?> DeleteEpisode(int id);
         Task<Series?> UpdateEpisode(
-            int id, 
-            CreateUpdateEpisodeDto dto, 
+            int id,
+            CreateUpdateEpisodeDto dto,
             IFormFile? thumbnail = null
         );
     }

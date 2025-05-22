@@ -123,7 +123,10 @@ namespace api.Repositories
         }
 
 
-        public async Task<List<Episode>> GetAllEpisodes(EpisodeQueryObject queryObject)
+        public async Task<List<Episode>?> GetAllEpisodes(
+            EpisodeQueryObject queryObject,
+            CancellationToken cancellationToken
+        )
         {
             // throw new NotImplementedException();
 

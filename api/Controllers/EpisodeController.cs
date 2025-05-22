@@ -29,7 +29,7 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEpisodes([FromQuery] EpisodeQueryObject queryObject)
+        public async Task<IActionResult> GetAllEpisodes([FromQuery] EpisodeQueryObject queryObject, CancellationToken cancellationToken)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -37,7 +37,7 @@ namespace api.Controllers
             if (string.IsNullOrWhiteSpace(queryObject.SeriesTitle))
                 return BadRequest("Series title is required.");
 
-            var episodes = await _episodeRepo.GetAllEpisodes(queryObject);
+            var episodes = await _episodeRepo.GetAllEpisodes(queryObject, cancellationToken);
 
             return Ok(episodes.Select(s => s.ToEpisodeDto()));
         }
@@ -45,12 +45,12 @@ namespace api.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetEpisode([FromRoute] int id)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
             var episode = await _episodeRepo.GetEpisode(id);
 
-            if(episode == null)
+            if (episode == null)
             {
                 return NotFound();
             }
@@ -61,12 +61,12 @@ namespace api.Controllers
 
         [HttpPost]
         public async Task<IActionResult> CreateEpisode(
-            [FromForm] CreateUpdateEpisodeDto dto, 
+            [FromForm] CreateUpdateEpisodeDto dto,
             [FromForm] IFormFile thumbnail,
             [FromForm] IFormFile file
         )
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var episode = new Episode
@@ -98,7 +98,7 @@ namespace api.Controllers
             //         return BadRequest(new { error = result?.Error?.Description });
             //     }
             // }
-            
+
             return CreatedAtAction(nameof(GetEpisode), new { id = episode.Id }, episode.ToEpisodeDto());
         }
 
@@ -106,18 +106,18 @@ namespace api.Controllers
         [Route("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var series = await _episodeRepo.DeleteEpisode(id);
 
-            if(series == null)
+            if (series == null)
             {
                 return NotFound();
             }
 
             return NoContent();
-            
+
         }
 
     }
