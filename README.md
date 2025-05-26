@@ -78,8 +78,8 @@ docker volume ls
 ```
 
 DRIVER VOLUME NAME
-local movie-like-aspcore_sqlserver_data
-local movie-like-aspcore_uploads_data
+- local movie-like-aspcore_sqlserver_data
+- local movie-like-aspcore_uploads_data
 
 and if you do
 
@@ -88,8 +88,8 @@ docker ps -a
 ```
 
 CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
-id here movie-like-aspcore-api "dotnet api.dll" About an hour ago Exited (0) 25 minutes ago movie-like-aspcore-api-1
-id here mcr.microsoft.com/mssql/server:2022-latest "/opt/mssql/bin/laun…" About an hour ago Exited (137) 25 minutes ago movie-like-aspcore-sqlserver-1
+- id here movie-like-aspcore-api "dotnet api.dll" About an hour ago Exited (0) 25 minutes ago movie-like-aspcore-api-1
+- id here mcr.microsoft.com/mssql/server:2022-latest "/opt/mssql/bin/laun…" About an hour ago Exited (137) 25 minutes ago movie-like-aspcore-sqlserver-1
 
 ### REST ENDPOINT
 
