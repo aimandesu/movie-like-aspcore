@@ -23,11 +23,14 @@ services:
     environment:
       # This connection string is for inside the Docker network!
       - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=movieaspcore;User Id=sa;Password=DockerSQL2022_;TrustServerCertificate=true;
+    volumes:
+      - uploads_data:/app/wwwroot
     networks:
       - app-network
 
 volumes:
   sqlserver_data:
+  uploads_data:
 
 networks:
   app-network:
