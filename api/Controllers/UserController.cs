@@ -5,9 +5,12 @@ using System.Threading.Tasks;
 using api.Dtos.User;
 using api.Interfaces;
 using api.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 namespace api.Controllers
 {
@@ -18,16 +21,19 @@ namespace api.Controllers
         private readonly UserManager<User> _userManager;
         private readonly ITokenService _tokenService;
         private readonly SignInManager<User> _signInManager;
+        private readonly IUserRepository _userRepo;
 
         public UserController(
             UserManager<User> userManager,
             ITokenService tokenService,
-            SignInManager<User> signInManager
+            SignInManager<User> signInManager,
+            IUserRepository userRepository
         )
         {
             _userManager = userManager;
             _tokenService = tokenService;
             _signInManager = signInManager;
+            _userRepo = userRepository;
         }
 
         [HttpPost("register")]
@@ -35,7 +41,7 @@ namespace api.Controllers
         {
             try
             {
-                if(!ModelState.IsValid)
+                if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
                 var user = new User
@@ -46,10 +52,10 @@ namespace api.Controllers
 
                 var createdUser = await _userManager.CreateAsync(user, registerDto.Password);
 
-                if(createdUser.Succeeded)
+                if (createdUser.Succeeded)
                 {
                     var roleResult = await _userManager.AddToRoleAsync(user, "User");
-                    if(roleResult.Succeeded)
+                    if (roleResult.Succeeded)
                     {
                         return Ok(
                             new NewUserDto
@@ -62,15 +68,16 @@ namespace api.Controllers
                     }
                     else
                     {
-                        return StatusCode(500, roleResult.Errors); 
+                        return StatusCode(500, roleResult.Errors);
                     }
                 }
                 else
                 {
-                    return StatusCode(500, createdUser.Errors); 
+                    return StatusCode(500, createdUser.Errors);
                 }
 
-            }catch(Exception e)
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, e);
             }
@@ -79,23 +86,23 @@ namespace api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromForm] LoginDto loginDto)
         {
-            if(!ModelState.IsValid)
-                    return BadRequest(ModelState);
-            
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDto.Username);
-            
-            if(user == null) return Unauthorized("Invalid username");
+
+            if (user == null) return Unauthorized("Invalid username");
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 
-            if(!result.Succeeded) return Unauthorized("Username not found and/or wrong password"); 
+            if (!result.Succeeded) return Unauthorized("Username not found and/or wrong password");
 
             return Ok(
                 new NewUserDto
                 {
-                     UserName = user.UserName,
-                     Email = user.Email,
-                     Token = _tokenService.CreateToken(user)
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    Token = _tokenService.CreateToken(user)
                 }
             );
         }
@@ -106,6 +113,46 @@ namespace api.Controllers
             await _signInManager.SignOutAsync();
             return Ok(new { message = "User logged out successfully" });
         }
+
+        [HttpGet("account/login/google")]
+        public async Task<IActionResult> GoogleLogin(
+            [FromQuery] string returnUrl,
+            LinkGenerator linkGenerator,
+            SignInManager<User> signManager
+        )
+        {
+            var path = linkGenerator.GetPathByName(HttpContext, "GoogleLoginCallback");
+            var properties = signManager.ConfigureExternalAuthenticationProperties("Google", $"{path}?returnUrl={returnUrl}");
+
+            return Challenge(properties, "Google");
+        }
+
+
+        [HttpGet("account/login/google/callback", Name = "GoogleLoginCallback")]
+        public async Task<IActionResult> GoogleLoginCallback(
+            [FromQuery] string returnUrl
+        )
+        {
+            var result = await HttpContext.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+
+            if (!result.Succeeded)
+            {
+                return Unauthorized();
+            }
+
+            var (user, token) = await _userRepo.LoginWithGoogle(result.Principal);
+
+            HttpContext.Response.Cookies.Append("jwt", token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            });
+
+            return Redirect(returnUrl);
+        }
+
 
     }
 }

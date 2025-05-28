@@ -12,6 +12,14 @@ A Movie/Series API - Or whatever platform it'll be in the end of development
 
 - http://aimanafiq.runasp.net/api/{REST_ENDPONT}
 
+## Important Step
+
+You need to remove line UserSecretsId in api.csproj because it is not going to be available if you clone this repo then if you want you can just create Google Sign In at Google Console and upload user secret for clientId and clientSecret.
+
+It is related to Google clientId and clientSecret which was setup locally using the dotnet user secret.
+
+Also remove all .AddCookie() and .AddGoogle() and variable options.Events in .AddJwtBearer if you don't have clientId and clientSecret
+
 ## Migrate
 
 1. Enter the API folder path
@@ -61,15 +69,32 @@ Docker Compose V2
 sudo apt install docker-compose-v2
 ```
 
-3. Run docker build command
+3. Create localhost certification keys
+
+- Windows
+
+```bash
+dotnet dev-certs https -ep %USERPROFILE%\.aspnet\https\api.pfx -p pa55w0rd!
+dotnet dev-certs https --trust
+```
+
+- Linux / Mac
+
+```bash
+mkdir -p ${HOME}/.aspnet/https/
+dotnet dev-certs https -ep ${HOME}/.aspnet/https/api.pfx -p pa55w0rd!
+dotnet dev-certs https --trust
+```
+
+4. Run docker build command
 
 ```bash
 docker compose up --build
 ```
 
-4. Your API should already started
+5. Your API should already started
 
-5. Tips if it works, you would get something like
+6. Tips if it works, you would get something like
 
 if you do
 
@@ -78,6 +103,7 @@ docker volume ls
 ```
 
 DRIVER VOLUME NAME
+
 - local movie-like-aspcore_sqlserver_data
 - local movie-like-aspcore_uploads_data
 
@@ -88,6 +114,7 @@ docker ps -a
 ```
 
 CONTAINER ID IMAGE COMMAND CREATED STATUS PORTS NAMES
+
 - id here movie-like-aspcore-api "dotnet api.dll" About an hour ago Exited (0) 25 minutes ago movie-like-aspcore-api-1
 - id here mcr.microsoft.com/mssql/server:2022-latest "/opt/mssql/bin/laun…" About an hour ago Exited (137) 25 minutes ago movie-like-aspcore-sqlserver-1
 
