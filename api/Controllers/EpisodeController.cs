@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Data;
-using api.Dtos.Episode;
-using api.Helpers;
-using api.Interfaces;
-using api.Mappers;
-using api.Models;
+using application.Common;
+using application.Dtos.Episode;
+using application.IRepository;
+using application.Mappers;
+using domain.Entities;
+using infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -29,7 +29,10 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllEpisodes([FromQuery] EpisodeQueryObject queryObject, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAllEpisodes(
+            [FromQuery] EpisodeQueryObject queryObject,
+            CancellationToken cancellationToken
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -37,7 +40,10 @@ namespace api.Controllers
             if (string.IsNullOrWhiteSpace(queryObject.SeriesTitle))
                 return BadRequest("Series title is required.");
 
-            var episodes = await _episodeRepo.GetAllEpisodes(queryObject, cancellationToken);
+            var episodes = await _episodeRepo.GetAllEpisodes(
+                queryObject,
+                cancellationToken
+            );
 
             return Ok(episodes.Select(s => s.ToEpisodeDto()));
         }
@@ -80,7 +86,12 @@ namespace api.Controllers
                 EpisodeNumber = dto.EpisodeNumber,
             };
 
-            var result = await _episodeRepo.CreateEpisode(episode, thumbnail, file);
+            var result = await _episodeRepo.CreateEpisode(
+                episode,
+                thumbnail.OpenReadStream(),
+                file.OpenReadStream(),
+                file.FileName
+            );
 
             // if (!result.IsSuccess)
             // {
@@ -99,7 +110,11 @@ namespace api.Controllers
             //     }
             // }
 
-            return CreatedAtAction(nameof(GetEpisode), new { id = episode.Id }, episode.ToEpisodeDto());
+            return CreatedAtAction(
+                nameof(GetEpisode),
+                new { id = episode.Id },
+                episode.ToEpisodeDto()
+            );
         }
 
         [HttpDelete]

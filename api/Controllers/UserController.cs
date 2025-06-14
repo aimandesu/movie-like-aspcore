@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Dtos.User;
-using api.Interfaces;
-using api.Models;
+using application.Dtos.User;
+using application.IRepository;
+using domain.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
@@ -37,7 +37,9 @@ namespace api.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromForm] RegisterDto registerDto)
+        public async Task<IActionResult> Register(
+            [FromForm] RegisterDto registerDto
+        )
         {
             try
             {
@@ -50,11 +52,16 @@ namespace api.Controllers
                     Email = registerDto.Email,
                 };
 
-                var createdUser = await _userManager.CreateAsync(user, registerDto.Password);
+                var createdUser = await _userManager.CreateAsync(
+                    user,
+                    registerDto.Password
+                );
 
                 if (createdUser.Succeeded)
                 {
-                    var roleResult = await _userManager.AddToRoleAsync(user, "User");
+                    var roleResult = await _userManager
+                        .AddToRoleAsync(user, "User");
+
                     if (roleResult.Succeeded)
                     {
                         return Ok(
@@ -84,16 +91,25 @@ namespace api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromForm] LoginDto loginDto)
+        public async Task<IActionResult> Login(
+            [FromForm] LoginDto loginDto
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var user = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == loginDto.Username);
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(
+                    x => x.UserName == loginDto.Username
+                );
 
             if (user == null) return Unauthorized("Invalid username");
 
-            var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
+            var result = await _signInManager.CheckPasswordSignInAsync(
+                user,
+                loginDto.Password,
+                false
+            );
 
             if (!result.Succeeded) return Unauthorized("Username not found and/or wrong password");
 
@@ -122,7 +138,9 @@ namespace api.Controllers
         )
         {
             var path = linkGenerator.GetPathByName(HttpContext, "GoogleLoginCallback");
-            var properties = signManager.ConfigureExternalAuthenticationProperties("Google", $"{path}?returnUrl={returnUrl}");
+            var properties = signManager.ConfigureExternalAuthenticationProperties(
+                "Google", $"{path}?returnUrl={returnUrl}"
+            );
 
             return Challenge(properties, "Google");
         }

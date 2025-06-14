@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Data;
-using api.Dtos.Category;
-using api.Interfaces;
-using api.Models;
+using application.Dtos.Category;
+using application.IRepository;
+using domain.Entities;
+using infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -17,20 +17,20 @@ namespace api.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ICategoryRepository _categoryRepo;
         public CategoryController(
-            ApplicationDbContext context, 
+            ApplicationDbContext context,
             ICategoryRepository categoryRepository
         )
         {
             _context = context;
             _categoryRepo = categoryRepository;
         }
-        
+
         [HttpGet]
         public async Task<IActionResult> GetAllCategories()
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
             var categories = await _categoryRepo.GetAllCategories();
 
             return Ok(categories);
@@ -40,12 +40,12 @@ namespace api.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetCategory([FromRoute] int id)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
             var category = await _categoryRepo.GetCategory(id);
 
-            if(category == null)
+            if (category == null)
             {
                 return NotFound();
             }
@@ -55,7 +55,9 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCategory([FromForm] CreateCategoryDto dto)
+        public async Task<IActionResult> CreateCategory(
+            [FromForm] CreateCategoryDto dto
+        )
         {
             var category = new Category
             {
@@ -64,25 +66,28 @@ namespace api.Controllers
 
             await _categoryRepo.CreateCategory(category);
 
-            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+            return CreatedAtAction(
+                nameof(GetCategory),
+                new { id = category.Id }, category
+            );
         }
 
         [HttpDelete]
         [Route("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var category = await _categoryRepo.DeleteCategory(id);
 
-            if(category == null)
+            if (category == null)
             {
                 return NotFound();
             }
 
             return NoContent();
-            
+
         }
 
     }

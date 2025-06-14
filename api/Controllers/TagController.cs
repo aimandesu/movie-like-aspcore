@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Data;
-using api.Dtos.Tag;
-using api.Interfaces;
-using api.Models;
+using application.Dtos.Tag;
+using application.IRepository;
+using domain.Entities;
+using infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -18,7 +18,7 @@ namespace api.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ITagRepository _tagRepo;
         public TagController(
-            ApplicationDbContext context, 
+            ApplicationDbContext context,
             ITagRepository tagRepository
         )
         {
@@ -29,9 +29,9 @@ namespace api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllTags()
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
             var tags = await _tagRepo.GetAllTags();
 
             return Ok(tags);
@@ -41,12 +41,12 @@ namespace api.Controllers
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetTag([FromRoute] int id)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
             var tag = await _tagRepo.GetTag(id);
 
-            if(tag == null)
+            if (tag == null)
             {
                 return NotFound();
             }
@@ -56,7 +56,9 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateTag([FromForm] CreateTagDto dto)
+        public async Task<IActionResult> CreateTag(
+            [FromForm] CreateTagDto dto
+        )
         {
             var tag = new Tag
             {
@@ -65,25 +67,29 @@ namespace api.Controllers
 
             await _tagRepo.CreateTag(tag);
 
-            return CreatedAtAction(nameof(GetTag), new { id = tag.Id }, tag);
+            return CreatedAtAction(
+                nameof(GetTag),
+                new { id = tag.Id },
+                tag
+            );
         }
 
         [HttpDelete]
         [Route("{id:int}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var tag = await _tagRepo.DeleteTag(id);
 
-            if(tag == null)
+            if (tag == null)
             {
                 return NotFound();
             }
 
             return NoContent();
-            
+
         }
 
     }

@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Data;
-using api.Dtos.Series;
-using api.Helpers;
-using api.Interfaces;
-using api.Mappers;
-using api.Models;
+using application.Common;
+using application.Dtos.Series;
+using application.IRepository;
+using application.Mappers;
+using domain.Entities;
+using infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -65,7 +65,10 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSeries([FromForm] CreateUpdateSeriesDto dto, [FromForm] IFormFile thumbnail)
+        public async Task<IActionResult> CreateSeries(
+            [FromForm] CreateUpdateSeriesDto dto,
+            [FromForm] IFormFile thumbnail
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -88,9 +91,17 @@ namespace api.Controllers
                 })]
             };
 
-            var created = await _seriesRepo.CreateSeries(series, thumbnail);
+            var created = await _seriesRepo.CreateSeries(
+                series,
+                thumbnail.OpenReadStream(),
+                thumbnail.FileName
+            );
 
-            return CreatedAtRoute("GetSeriesBySlug", new { slug = created.Slug }, created.ToSeriesDto());
+            return CreatedAtRoute(
+                "GetSeriesBySlug",
+                new { slug = created.Slug },
+                created.ToSeriesDto()
+            );
         }
 
         [HttpPut("{id:int}")]
@@ -103,7 +114,12 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var series = await _seriesRepo.UpdateSeries(id, dto, thumbnail);
+            var series = await _seriesRepo.UpdateSeries(
+                id,
+                dto,
+                thumbnail.OpenReadStream(),
+                thumbnail.FileName
+            );
 
             if (series == null)
                 return NotFound();

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using api.Data;
-using api.Dtos.Comment;
 using api.Extensions;
-using api.Helpers;
-using api.Interfaces;
-using api.Mappers;
-using api.Models;
+using application.Common;
+using application.Dtos.Comment;
+using application.IRepository;
+using application.Mappers;
+using domain.Entities;
+using infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +34,9 @@ namespace api.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetComment([FromRoute] int id)
+        public async Task<IActionResult> GetComment(
+            [FromRoute] int id
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -60,7 +62,11 @@ namespace api.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var comments = await _commentRepo.GetAllComments(pagination, commentQuery, episodeId);
+            var comments = await _commentRepo.GetAllComments(
+                pagination,
+                commentQuery,
+                episodeId
+            );
 
             return Ok(comments.Select(e => e.ToCommentDto()));
 
@@ -88,7 +94,11 @@ namespace api.Controllers
 
             await _commentRepo.AddComment(comment);
 
-            return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment.ToCommentDto());
+            return CreatedAtAction(
+                nameof(GetComment),
+                new { id = comment.Id },
+                comment.ToCommentDto()
+            );
 
         }
 

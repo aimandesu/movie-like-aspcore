@@ -24,7 +24,8 @@ namespace api.Controllers
 
             return Problem(
                 detail: exceptionHandlerFeature.Error.StackTrace,
-                title: exceptionHandlerFeature.Error.Message);
+                title: exceptionHandlerFeature.Error.Message
+            );
         }
 
         [Route("/error")]

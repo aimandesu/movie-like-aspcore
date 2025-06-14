@@ -24,6 +24,10 @@
     <Content Remove="wwwroot\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\infrastructure\infrastructure.csproj" />
+  </ItemGroup>
+
   <Target Name="ExcludeFolderFromPublish" AfterTargets="CollectFilesToPublish">
     <ItemGroup>
       <ResolvedFileToPublish Remove="wwwroot\**" />

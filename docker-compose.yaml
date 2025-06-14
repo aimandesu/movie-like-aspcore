@@ -15,7 +15,9 @@ services:
       - app-network
 
   api:
-    build: ./api
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "9260:8080"
       - "9261:443"
