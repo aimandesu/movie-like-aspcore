@@ -75,6 +75,7 @@ namespace infrastructure
             services.AddScoped<IVideoRepository, VideoRepository>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ICommentRepository, CommentRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
     }
 }

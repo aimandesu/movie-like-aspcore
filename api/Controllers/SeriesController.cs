@@ -4,10 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using application.Common;
 using application.Dtos.Series;
+using application.Features.SeriesFeature.Create;
+using application.Features.SeriesFeature.Delete;
+using application.Features.SeriesFeature.Update;
 using application.IRepository;
 using application.Mappers;
 using domain.Entities;
 using infrastructure.Data;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,15 +22,20 @@ namespace api.Controllers
     [ApiController]
     public class SeriesController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-        private readonly ISeriesRepository _seriesRepo;
+        private readonly ApplicationDbContext _context; //this should be removed
+        private readonly ISeriesRepository _seriesRepo; // this should be removed
+
+        private readonly IMediator _mediator;
+
         public SeriesController(
             ApplicationDbContext context,
-            ISeriesRepository seriesRepository
+            ISeriesRepository seriesRepository,
+            IMediator mediator
         )
         {
             _context = context;
             _seriesRepo = seriesRepository;
+            _mediator = mediator;
 
         }
 
@@ -65,84 +74,77 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSeries(
+        public async Task<ActionResult<CreateSeriesResponse>> CreateSeries(
             [FromForm] CreateUpdateSeriesDto dto,
-            [FromForm] IFormFile thumbnail
+            [FromForm] IFormFile thumbnail,
+            CancellationToken cancellationToken
         )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var series = new Series
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-                Thumbnail = dto.Thumbnail,
-                Slug = CustomFunction.GenerateSlug(dto.Title),
-                SeriesFormat = SeriesFormat.None,
-                CreatedAt = DateTime.UtcNow,
-                SeriesCategories = [.. dto.CategoryIds.Select(catId => new SeriesCategory
-                {
-                    CategoryId = catId
-                })],
-                TagCategories = [.. dto.TagCategoryIds.Select(tagId => new TagCategory
-                {
-                    TagId = tagId
-                })]
-            };
-
-            var created = await _seriesRepo.CreateSeries(
-                series,
-                thumbnail.OpenReadStream(),
-                thumbnail.FileName
+            var command = new CreateSeriesRequest(
+                dto,
+                new FileUploadDto(
+                    thumbnail.OpenReadStream(),
+                    thumbnail.FileName,
+                    thumbnail.ContentType
+                )
             );
 
-            return CreatedAtRoute(
-                "GetSeriesBySlug",
-                new { slug = created.Slug },
-                created.ToSeriesDto()
+            var result = await _mediator.Send(
+                command,
+                cancellationToken
             );
+
+            return Ok(result);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(
+        public async Task<ActionResult<UpdateSeriesResponse>> Update(
             [FromRoute] int id,
             [FromForm] CreateUpdateSeriesDto dto,
+            CancellationToken cancellationToken,
             [FromForm] IFormFile? thumbnail = null
         )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var series = await _seriesRepo.UpdateSeries(
-                id,
-                dto,
-                thumbnail.OpenReadStream(),
-                thumbnail.FileName
+            var command = new UpdateSeriesRequest(
+             id,
+             dto,
+             thumbnail != null ?
+              new FileUploadDto(
+                    thumbnail.OpenReadStream(),
+                    thumbnail.FileName,
+                    thumbnail.ContentType
+                ) : null
             );
 
-            if (series == null)
-                return NotFound();
+            var result = await _mediator.Send(
+                command,
+                cancellationToken
+            );
 
-            return Ok(series.ToSeriesDto());
+            return Ok(result);
         }
 
 
         [HttpDelete]
         [Route("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<ActionResult<DeleteSeriesResponse>> Delete(
+            [FromRoute] int id
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var series = await _seriesRepo.DeleteSeries(id);
+            var result = await _mediator.Send(
+             new DeleteSeriesRequest(id)
+           );
 
-            if (series == null)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
+            return Ok(result);
 
         }
 

@@ -27,50 +27,13 @@ namespace infrastructure.Repository
 
         }
 
-        public async Task<Series?> CreateSeries(Series series, Stream thumbnail, string fileName)
-        {
-            var currentSeries = await _context.Series.ToListAsync();
-
-            if (currentSeries.Any(a => a.Title == series.Title))
-            {
-                throw new InvalidOperationException($"Title {series.Title} already exists");
-            }
-
-            await _context.Series.AddAsync(series);
-            await _context.SaveChangesAsync();
-
-            if (thumbnail != null && thumbnail.Length > 0)
-            {
-                var safeTitle = MyRegex()
-                               .Replace(CustomFunction
-                               .SanitizeFolderName(series.Title)
-                               .Trim().ToLower().Replace(" ", "_"), "");
-
-                var folder = $"uploads/series/{safeTitle}/thumbnail";
-                series.Thumbnail = await _fileService.SaveFile(thumbnail, folder, fileName);
-
-                _context.Series.Update(series);
-                await _context.SaveChangesAsync();
-            }
-
-            series = await _context.Series
-                    .Include(s => s.SeriesCategories)
-                        .ThenInclude(sc => sc.Category)
-                    .Include(s => s.TagCategories)
-                        .ThenInclude(tc => tc.Tag)
-                    .FirstAsync(s => s.Id == series.Id);
-
-            return series;
-        }
-
-
         public async Task<Series?> DeleteSeries(int id)
         {
             var filePaths = new List<string>();
 
             var series = await _context.Series
                 .Include(s => s.Episodes)
-                .ThenInclude(e => e.Video)
+                    .ThenInclude(e => e.Video)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
             if (series == null)
@@ -94,7 +57,7 @@ namespace infrastructure.Repository
 
             _fileService.DeleteFiles(filePaths);
             _context.Series.Remove(series);
-            await _context.SaveChangesAsync();
+
             return series;
 
         }
@@ -128,9 +91,9 @@ namespace infrastructure.Repository
         {
             var series = await _context.Series
             .Include(e => e.SeriesCategories)
-                 .ThenInclude(sc => sc.Category)
+                .ThenInclude(sc => sc.Category)
             .Include(s => s.TagCategories)
-                    .ThenInclude(sc => sc.Tag)
+                .ThenInclude(sc => sc.Tag)
             .Include(e => e.Episodes)
             .Include(c => c.Comments)
             .FirstOrDefaultAsync(i => i.Slug == slug);
@@ -164,100 +127,43 @@ namespace infrastructure.Repository
             return series;
         }
 
-        public async Task<Series?> UpdateSeries(int id, CreateUpdateSeriesDto dto, Stream? thumbnailStream = null, string? thumbnailFileName = null)
+        public async Task<Series?> GetByIdAsync(int id)
         {
-            var existingSeries = await _context
-                .Series
-                // .Include(s => s.SeriesCategories), we can remove this bcs in series without extending to dto already gets all relationship 
-                .FirstOrDefaultAsync(e => e.Id == id);
-
-            if (existingSeries == null)
-            {
-                return null;
-            }
-
-            existingSeries.Title = dto.Title;
-            existingSeries.Description = dto.Description;
-
-            var currentSeries = await _context.Series.ToListAsync();
-
-            if (currentSeries
-                    .Any(a => a.Id != existingSeries.Id &&
-              a.Title.Trim().Equals(existingSeries.Title.Trim(), StringComparison.OrdinalIgnoreCase)))
-            {
-                throw new InvalidOperationException($"Title '{dto.Title}' already exists");
-            }
-
-            if (thumbnailStream != null && thumbnailStream.Length > 0 && !string.IsNullOrWhiteSpace(thumbnailFileName))
-            {
-                var basePath = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development"
-                    ? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
-                    : Directory.GetCurrentDirectory();
-
-                var uploadsFolder = Path.Combine(basePath, "uploads");
-                Directory.CreateDirectory(uploadsFolder);
-
-                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(thumbnailFileName)}";
-                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using var stream = new FileStream(filePath, FileMode.Create);
-                await thumbnailStream.CopyToAsync(stream);
-
-                existingSeries.Thumbnail = $"/uploads/{uniqueFileName}";
-            }
-
-
-            //remove categories and tags
-            var categoriesToRemove = existingSeries.SeriesCategories
-                    .Where(sc => !dto.CategoryIds.Contains(sc.CategoryId))
-                    .ToList();
-
-            foreach (var categoryToRemove in categoriesToRemove)
-            {
-                _context.Remove(categoryToRemove);
-            }
-
-            var tagsToRemove = existingSeries.TagCategories
-                    .Where(sc => !dto.TagCategoryIds.Contains(sc.TagId))
-                    .ToList();
-
-            foreach (var tagToRemove in tagsToRemove)
-            {
-                _context.Remove(tagToRemove);
-            }
-
-            //add categories and tags
-            foreach (var categoryId in dto.CategoryIds)
-            {
-
-                if (!existingSeries.SeriesCategories.Any(sc => sc.CategoryId == categoryId))
-                {
-                    existingSeries.SeriesCategories.Add(new SeriesCategory
-                    {
-                        CategoryId = categoryId,
-                        SeriesId = existingSeries.Id
-                    });
-                }
-            }
-
-            foreach (var tagId in dto.TagCategoryIds)
-            {
-
-                if (!existingSeries.TagCategories.Any(sc => sc.TagId == tagId))
-                {
-                    existingSeries.TagCategories.Add(new TagCategory
-                    {
-                        TagId = tagId,
-                        SeriesId = existingSeries.Id
-                    });
-                }
-            }
-
-            await _context.SaveChangesAsync();
-            return existingSeries;
+            return await _context.Series
+                .Include(s => s.SeriesCategories)
+                .Include(s => s.TagCategories)
+                .FirstOrDefaultAsync(s => s.Id == id);
         }
 
-        [GeneratedRegex(@"[^a-z0-9_]")]
-        private static partial Regex MyRegex();
+        public async Task<bool> ExistsByTitleAsync(string title, int? excludeId = null)
+        {
+            return await _context.Series.AnyAsync(s =>
+                s.Title.Trim().ToLower() == title.Trim().ToLower()
+                && (!excludeId.HasValue || s.Id != excludeId));
+        }
+
+        public async Task<Series?> GetByTitleAsync(string title)
+        {
+            return await _context.Series
+                .FirstOrDefaultAsync(s => s.Title == title);
+        }
+
+        public async Task AddAsync(Series series)
+        {
+            await _context.Series.AddAsync(series);
+        }
+
+        public void Update(Series series)
+        {
+            _context.Series.Update(series);
+        }
+
+        // public async Task<Series> GetWithIncludesAsync(int id)
+        // {
+        //     return await _context.Series
+        //         .Include(s => s.SeriesCategories).ThenInclude(sc => sc.Category)
+        //         .Include(s => s.TagCategories).ThenInclude(tc => tc.Tag)
+        //         .FirstAsync(s => s.Id == id);
+        // }
     }
 }

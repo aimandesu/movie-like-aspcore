@@ -25,22 +25,19 @@ namespace infrastructure.Repository
             _memoryCache = memoryCache;
         }
 
-        public Task<Series?> CreateSeries(
-            Series series,
-            Stream file,
-            string fileName
-        )
+        public Task AddAsync(Series series)
         {
-            return _decorated.CreateSeries(
-                series,
-                file,
-                fileName
-            );
+            return _decorated.AddAsync(series);
         }
 
         public Task<Series?> DeleteSeries(int id)
         {
             return _decorated.DeleteSeries(id);
+        }
+
+        public Task<bool> ExistsByTitleAsync(string title, int? excludeId = null)
+        {
+            return _decorated.ExistsByTitleAsync(title, excludeId);
         }
 
         public Task<List<Series>> GetAllSeries(
@@ -52,6 +49,16 @@ namespace infrastructure.Repository
                 queryObject,
                 pagination
             );
+        }
+
+        public Task<Series?> GetByIdAsync(int id)
+        {
+            return _decorated.GetByIdAsync(id);
+        }
+
+        public Task<Series?> GetByTitleAsync(string title)
+        {
+            return _decorated.GetByTitleAsync(title);
         }
 
         public Task<Series?> GetSeries(string slug)
@@ -68,14 +75,14 @@ namespace infrastructure.Repository
             );
         }
 
-        public Task<Series?> UpdateSeries(
-            int id,
-            CreateUpdateSeriesDto dto,
-            Stream? thumbnail = null,
-            string? thumbnailFileName = null
-        )
+        // public Task<Series> GetWithIncludesAsync(int id)
+        // {
+        //     return _decorated.GetWithIncludesAsync(id);
+        // }
+
+        public void Update(Series series)
         {
-            return _decorated.UpdateSeries(id, dto, thumbnail);
+            _decorated.Update(series);
         }
     }
 }

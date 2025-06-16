@@ -46,7 +46,11 @@ namespace infrastructure.Repository
             }
         }
 
-        public async Task<string> SaveFile(Stream fileStream, string folder, string originalFileName)
+        public async Task<string> SaveFile(
+            Stream fileStream,
+            string folder,
+            string originalFileName
+        )
         {
             if (fileStream == null || fileStream.Length == 0)
                 throw new ArgumentException("File stream is empty.");

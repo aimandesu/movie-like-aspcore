@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using api.Extensions;
 using api.Middleware;
 using api.Seeder;
+using application;
 using infrastructure;
 using infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -31,6 +32,7 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 });
 
 builder.Services.ConfigureInfrastructure(builder.Configuration, builder.Environment);
+builder.Services.ConfigureApplication();
 builder.Services.ConfigureJWTPolicy(builder.Configuration);
 builder.Services.ConfigureIdentityPolicy();
 builder.Services.ConfigureCorsPolicy();
