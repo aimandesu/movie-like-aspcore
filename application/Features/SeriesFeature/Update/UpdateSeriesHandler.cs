@@ -66,7 +66,12 @@ namespace application.Features.SeriesFeature.Update
                 var savedPath = await _fileService.SaveFile(
                     thumbnail.FileStream, folder, thumbnail.FileName
                 );
+                //delete existing path
+                _fileService.DeleteFile(existingSeries.Thumbnail);
+
+                //add new path
                 existingSeries.Thumbnail = savedPath;
+
             }
 
             // Update SeriesCategories

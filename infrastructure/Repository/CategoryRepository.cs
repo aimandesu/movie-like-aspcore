@@ -16,10 +16,12 @@ namespace infrastructure.Repository
         {
             _context = context;
         }
-        public async Task<Category?> CreateCategory(Category category)
+        public async Task<Category?> CreateCategory(
+            Category category
+        )
         {
             await _context.Categories.AddAsync(category);
-            await _context.SaveChangesAsync();
+
             return category;
         }
 
@@ -34,7 +36,6 @@ namespace infrastructure.Repository
             }
 
             _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
             return category;
         }
 

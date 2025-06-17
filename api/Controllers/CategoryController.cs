@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using application.Dtos.Category;
+using application.Features.CategoryFeature.Create;
+using application.Features.CategoryFeature.Delete;
 using application.IRepository;
 using domain.Entities;
 using infrastructure.Data;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -16,13 +19,17 @@ namespace api.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ICategoryRepository _categoryRepo;
+        private readonly IMediator _mediator;
+
         public CategoryController(
             ApplicationDbContext context,
-            ICategoryRepository categoryRepository
+            ICategoryRepository categoryRepository,
+            IMediator mediator
         )
         {
             _context = context;
             _categoryRepo = categoryRepository;
+            _mediator = mediator;
         }
 
         [HttpGet]
@@ -55,31 +62,35 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCategory(
+        public async Task<ActionResult<CreateCategoryResponse>> CreateCategory(
             [FromForm] CreateCategoryDto dto
         )
         {
-            var category = new Category
-            {
-                Name = dto.Name,
-            };
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            await _categoryRepo.CreateCategory(category);
+            var result = await _mediator.Send(
+                new CreateCategoryRequest(dto)
+            );
 
             return CreatedAtAction(
                 nameof(GetCategory),
-                new { id = category.Id }, category
+                new { id = result?.Category?.Id }, result?.Category
             );
         }
 
         [HttpDelete]
         [Route("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<ActionResult<Category>> Delete(
+            [FromRoute] int id
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var category = await _categoryRepo.DeleteCategory(id);
+            var category = await _mediator.Send(
+               new DeleteSeriesRequest(id)
+           );
 
             if (category == null)
             {
