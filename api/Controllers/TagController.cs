@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using application.Dtos.Tag;
+using application.Features.TagFeature.Create;
+using application.Features.TagFeature.Delete;
 using application.IRepository;
 using domain.Entities;
 using infrastructure.Data;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -17,13 +20,17 @@ namespace api.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ITagRepository _tagRepo;
+        private readonly IMediator _mediator;
+
         public TagController(
             ApplicationDbContext context,
-            ITagRepository tagRepository
+            ITagRepository tagRepository,
+            IMediator mediator
         )
         {
             _context = context;
             _tagRepo = tagRepository;
+            _mediator = mediator;
         }
 
         [HttpGet]
@@ -56,32 +63,36 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateTag(
+        public async Task<ActionResult<CreateTagResponse>> CreateTag(
             [FromForm] CreateTagDto dto
         )
         {
-            var tag = new Tag
-            {
-                Name = dto.Name,
-            };
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            await _tagRepo.CreateTag(tag);
+            var result = await _mediator.Send(
+                new CreateTagRequest(dto)
+            );
 
             return CreatedAtAction(
                 nameof(GetTag),
-                new { id = tag.Id },
-                tag
+                new { id = result?.Tag?.Id },
+                result?.Tag
             );
         }
 
         [HttpDelete]
         [Route("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<ActionResult<Tag>> Delete(
+            [FromRoute] int id
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var tag = await _tagRepo.DeleteTag(id);
+            var tag = await _mediator.Send(
+               new DeleteTagRequest(id)
+           );
 
             if (tag == null)
             {

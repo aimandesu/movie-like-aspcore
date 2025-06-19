@@ -89,7 +89,7 @@ namespace api.Controllers
                 return BadRequest(ModelState);
 
             var category = await _mediator.Send(
-               new DeleteSeriesRequest(id)
+               new DeleteCategoryRequest(id)
            );
 
             if (category == null)

@@ -7,5 +7,5 @@ using MediatR;
 
 namespace application.Features.CategoryFeature.Delete
 {
-    public sealed record class DeleteSeriesRequest(int Id) : IRequest<Category?>;
+    public sealed record class DeleteCategoryRequest(int Id) : IRequest<Category?>;
 }

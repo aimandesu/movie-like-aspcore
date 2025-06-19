@@ -8,12 +8,12 @@ using MediatR;
 
 namespace application.Features.CategoryFeature.Delete
 {
-    public class DeleteSeriesHandler : IRequestHandler<DeleteSeriesRequest, Category?>
+    public class DeleteCategoryHandler : IRequestHandler<DeleteCategoryRequest, Category?>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICategoryRepository _categoryRepository;
 
-        public DeleteSeriesHandler(
+        public DeleteCategoryHandler(
             IUnitOfWork unitOfWork,
             ICategoryRepository categoryRepository
         )
@@ -23,7 +23,7 @@ namespace application.Features.CategoryFeature.Delete
         }
 
         public async Task<Category?> Handle(
-            DeleteSeriesRequest request,
+            DeleteCategoryRequest request,
             CancellationToken cancellationToken
         )
         {

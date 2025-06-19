@@ -20,7 +20,7 @@ namespace infrastructure.Repository
         public async Task<Tag?> CreateTag(Tag tag)
         {
             await _context.Tags.AddAsync(tag);
-            await _context.SaveChangesAsync();
+
             return tag;
         }
 
