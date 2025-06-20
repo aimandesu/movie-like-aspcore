@@ -20,31 +20,24 @@ namespace infrastructure.Repository
         public async Task<Comment> AddComment(Comment comment)
         {
             await _context.Comments.AddAsync(comment);
-            await _context.SaveChangesAsync();
             return comment;
         }
 
         public async Task<Comment?> DeleteComment(
             int id,
-            string username
+            string userId
         )
         {
 
-            var user = await _context.Users
-                .Include(u => u.Comments)
-                .FirstOrDefaultAsync(u => u.UserName == username);
+            var comment = await _context.Comments
+                .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
-            var comments = user?.Comments ?? [];
-
-            var commentToDelete = comments.FirstOrDefault(c => c.Id == id);
-
-            if (commentToDelete != null)
+            if (comment != null)
             {
-                _context.Comments.Remove(commentToDelete);
-                await _context.SaveChangesAsync();
+                _context.Comments.Remove(comment);
             }
 
-            return commentToDelete;
+            return comment;
 
         }
 

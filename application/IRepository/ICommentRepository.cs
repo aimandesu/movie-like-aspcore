@@ -10,7 +10,7 @@ namespace application.IRepository
     public interface ICommentRepository
     {
         Task<Comment> AddComment(Comment comment);
-        Task<Comment?> DeleteComment(int id, string username);
+        Task<Comment?> DeleteComment(int id, string userId);
         Task<List<Comment>> GetAllComments(
             PaginationQueryObject pagination,
             CommentQueryObject commentQuery,

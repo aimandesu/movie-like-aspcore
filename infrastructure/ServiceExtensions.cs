@@ -76,6 +76,7 @@ namespace infrastructure
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<ICommentRepository, CommentRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUserService, UserService>();
         }
     }
 }

@@ -5,10 +5,13 @@ using System.Threading.Tasks;
 using api.Extensions;
 using application.Common;
 using application.Dtos.Comment;
+using application.Features.CommentFeature.Create;
+using application.Features.CommentFeature.Delete;
 using application.IRepository;
 using application.Mappers;
 using domain.Entities;
 using infrastructure.Data;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,15 +25,18 @@ namespace api.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<User> _userManager;
         private readonly ICommentRepository _commentRepo;
+        private readonly IMediator _mediator;
         public CommentController(
             ApplicationDbContext context,
             UserManager<User> userManager,
-            ICommentRepository commentRepository
+            ICommentRepository commentRepository,
+            IMediator mediator
         )
         {
             _context = context;
             _userManager = userManager;
             _commentRepo = commentRepository;
+            _mediator = mediator;
         }
 
         [HttpGet("{id:int}")]
@@ -73,46 +79,44 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> AddComment(
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        public async Task<ActionResult<CreateCommentResponse>> AddComment(
             [FromForm] CreateUpdateCommentDto dto
         )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var username = User.GetUsername();
-            var user = await _userManager.FindByNameAsync(username);
-
-            var comment = new Comment
-            {
-                EpisodeId = dto.EpisodeId,
-                Discussion = dto.Discussion,
-                UserId = user?.Id ?? "",
-                CreatedAt = DateTime.UtcNow,
-            };
-
-            await _commentRepo.AddComment(comment);
+            var result = await _mediator.Send(
+                new CreateCommentRequest(dto)
+            );
 
             return CreatedAtAction(
                 nameof(GetComment),
-                new { id = comment.Id },
-                comment.ToCommentDto()
+                new { id = result?.Comment?.Id },
+                result?.Comment?.ToCommentDto()
             );
 
         }
 
         [HttpDelete]
-        [Authorize]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         [Route("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<ActionResult<Comment?>> Delete(
+            [FromRoute] int id
+        )
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            var username = User.GetUsername();
+            // var username = User.GetUsername();
 
-            var comment = await _commentRepo.DeleteComment(id, username);
+            var result = await _mediator.Send(
+                 new DeleteCommentRequest(id)
+             );
 
-            if (comment == null)
+
+            if (result == null)
             {
                 return NotFound();
             }
