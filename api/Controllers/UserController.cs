@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using application.Dtos.User;
+using application.Features.UserFeature.Login;
+using application.Features.UserFeature.Register;
 using application.IRepository;
 using domain.Entities;
+using MediatR;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
@@ -22,23 +25,27 @@ namespace api.Controllers
         private readonly ITokenService _tokenService;
         private readonly SignInManager<User> _signInManager;
         private readonly IUserRepository _userRepo;
+        private readonly IMediator _mediator;
 
         public UserController(
             UserManager<User> userManager,
             ITokenService tokenService,
             SignInManager<User> signInManager,
-            IUserRepository userRepository
+            IUserRepository userRepository,
+            IMediator mediator
         )
         {
             _userManager = userManager;
             _tokenService = tokenService;
             _signInManager = signInManager;
             _userRepo = userRepository;
+            _mediator = mediator;
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(
-            [FromForm] RegisterDto registerDto
+        public async Task<ActionResult<RegisterUserResponse>> Register(
+            [FromForm] RegisterDto registerDto,
+            CancellationToken cancellationToken
         )
         {
             try
@@ -46,41 +53,41 @@ namespace api.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var user = new User
-                {
-                    UserName = registerDto.Username,
-                    Email = registerDto.Email,
-                };
-
-                var createdUser = await _userManager.CreateAsync(
-                    user,
-                    registerDto.Password
+                var command = new RegisterUserRequest(
+                    registerDto
                 );
 
-                if (createdUser.Succeeded)
-                {
-                    var roleResult = await _userManager
-                        .AddToRoleAsync(user, "User");
+                var result = await _mediator.Send(
+                    command,
+                    cancellationToken
+                );
 
-                    if (roleResult.Succeeded)
+                if (result.IsSuccess)
+                {
+                    //append here to token 
+                    var token = _tokenService.CreateToken(
+                        new User
+                        {
+                            Email = registerDto.Email,
+                            UserName = registerDto.Username,
+                            Id = result?.Data?.NewUserDto?.Id ?? ""
+                        }
+                    );
+
+                    //append to jwt
+                    HttpContext.Response.Cookies.Append("jwt", token, new CookieOptions
                     {
-                        return Ok(
-                            new NewUserDto
-                            {
-                                UserName = user.UserName,
-                                Email = user.Email,
-                                Token = _tokenService.CreateToken(user),
-                            }
-                        );
-                    }
-                    else
-                    {
-                        return StatusCode(500, roleResult.Errors);
-                    }
+                        HttpOnly = true,
+                        Secure = true,
+                        SameSite = SameSiteMode.Strict,
+                        Expires = DateTime.UtcNow.AddDays(7)
+                    });
+
+                    return Ok(result?.Data);
                 }
                 else
                 {
-                    return StatusCode(500, createdUser.Errors);
+                    return StatusCode(500, result.Error);
                 }
 
             }
@@ -91,36 +98,51 @@ namespace api.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(
-            [FromForm] LoginDto loginDto
+        public async Task<ActionResult<LoginUserResponse>> Login(
+            [FromForm] LoginDto loginDto,
+            CancellationToken cancellationToken
         )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var user = await _userManager.Users
-                .FirstOrDefaultAsync(
-                    x => x.UserName == loginDto.Username
-                );
-
-            if (user == null) return Unauthorized("Invalid username");
-
-            var result = await _signInManager.CheckPasswordSignInAsync(
-                user,
-                loginDto.Password,
-                false
+            var command = new LoginUserRequest(
+                loginDto
             );
 
-            if (!result.Succeeded) return Unauthorized("Username not found and/or wrong password");
+            var result = await _mediator.Send(
+                command,
+                cancellationToken
+            );
 
-            return Ok(
-                new NewUserDto
+            if (result.IsSuccess)
+            {
+                var token = _tokenService.CreateToken(
+                        new User
+                        {
+                            Email = result?.Data?.NewUserDto?.Email,
+                            UserName = result?.Data?.NewUserDto?.UserName,
+                            Id = result?.Data?.NewUserDto?.Id ?? ""
+                        }
+                    );
+
+                //append to jwt
+                HttpContext.Response.Cookies.Append("jwt", token, new CookieOptions
                 {
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    Token = _tokenService.CreateToken(user)
-                }
-            );
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                });
+
+                return Ok(result?.Data);
+            }
+            else
+            {
+                return StatusCode(500, result.Error);
+            }
+
+
         }
 
         [HttpPost("logout")]

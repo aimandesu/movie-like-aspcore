@@ -4,24 +4,30 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using application.Common;
+using application.Dtos.User;
 using application.IRepository;
 using domain.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace infrastructure.Repository
 {
     public partial class UserRepository : IUserRepository
     {
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly ITokenService _tokenService;
 
         public UserRepository(
             UserManager<User> userManager,
-            ITokenService tokenService
+            ITokenService tokenService,
+            SignInManager<User> signInManager
         )
         {
             _userManager = userManager;
             _tokenService = tokenService;
+            _signInManager = signInManager;
         }
 
         public async Task<(User user, string token)> LoginWithGoogle(ClaimsPrincipal? claimsPrincipal)
@@ -91,5 +97,84 @@ namespace infrastructure.Repository
 
         [GeneratedRegex("^[a-zA-Z0-9]+$")]
         private static partial Regex MyRegex();
+
+        public async Task<ResultResponse<User>> RegisterUser(
+            RegisterDto registerDto
+        )
+        {
+
+            var user = new User
+            {
+                UserName = registerDto.Username,
+                Email = registerDto.Email,
+            };
+
+            var createdUser = await _userManager.CreateAsync(
+                   user,
+                   registerDto?.Password ?? ""
+               );
+
+            if (createdUser.Succeeded)
+            {
+                var roleResult = await _userManager
+                    .AddToRoleAsync(user, "User");
+
+                if (roleResult.Succeeded)
+                {
+                    return ResultResponse<User>.Success(user);
+                }
+                else
+                {
+                    return ResultResponse<User>.Fail(
+                        new NotFoundError
+                        {
+                            Description = string.Join(", ", createdUser.Errors.Select(e => e.Description))
+                        }
+                    );
+                }
+            }
+            else
+            {
+                return ResultResponse<User>.Fail(new NotFoundError
+                {
+                    Description = string.Join(", ", createdUser.Errors.Select(e => e.Description))
+                });
+            }
+        }
+
+        public async Task<ResultResponse<User>> LoginWithEmail(
+            LoginDto loginDto
+        )
+        {
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(
+                    x => x.UserName == loginDto.Username
+                );
+
+            if (user == null)
+            {
+                return ResultResponse<User>.Fail(new NotFoundError
+                {
+                    Description = "User not found"
+                });
+            }
+
+            var result = await _signInManager.CheckPasswordSignInAsync(
+                user,
+                loginDto.Password,
+                false
+            );
+
+            if (!result.Succeeded)
+            {
+                return ResultResponse<User>.Fail(new NotFoundError
+                {
+                    Description = "Username not found and/or wrong password"
+                });
+            }
+
+            return ResultResponse<User>.Success(user);
+
+        }
     }
 }
