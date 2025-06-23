@@ -2,11 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using application.Common;
 using application.Dtos.Video;
+using application.Features.VideoFeature.Create;
+using application.Features.VideoFeature.Delete;
 using application.IRepository;
 using application.Mappers;
 using domain.Entities;
 using infrastructure.Data;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -17,13 +21,17 @@ namespace api.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IVideoRepository _videoRepo;
+        private readonly IMediator _mediator;
+
         public VideoController(
             ApplicationDbContext context,
-            IVideoRepository videoRepository
+            IVideoRepository videoRepository,
+            IMediator mediator
         )
         {
             _context = context;
             _videoRepo = videoRepository;
+            _mediator = mediator;
         }
 
         [HttpGet("{id:int}")]
@@ -44,43 +52,48 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateVideo(
+        public async Task<ActionResult<CreateVideoResponse>> CreateVideo(
             [FromForm] CreateUpdateVideoDto dto,
-            [FromForm] IFormFile file
+            [FromForm] IFormFile file,
+            CancellationToken cancellationToken
         )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var video = new Video
-            {
-                VideoUrl = dto.VideoUrl,
-                // Duration = dto.Duration,
-                CreatedAt = DateTime.UtcNow,
-                // UpdatedAt = ,
-                // ViewCount = ,
-                EpisodeId = dto.EpisodeId,
-            };
+            var command = new CreateVideoRequest(
+                dto,
+                new FileUploadDto(
+                    file.OpenReadStream(),
+                    file.FileName,
+                    file.ContentType
+                )
+            );
 
-            var created = await _videoRepo.CreateVideo(
-                video, file.OpenReadStream(), file.FileName
+            var result = await _mediator.Send(
+                command,
+                cancellationToken
             );
 
             return CreatedAtAction(
                 nameof(GetVideo),
-                new { id = video.Id },
-                video.ToVideoDto()
+                new { id = result?.Video?.Id },
+                result?.Video?.ToVideoDto()
             );
         }
 
         [HttpDelete]
         [Route("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<ActionResult<Video>> Delete(
+            [FromRoute] int id
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var video = await _videoRepo.DeleteVideo(id);
+            var video = await _mediator.Send(
+                new DeleteVideoRequest(id)
+            );
 
             if (video == null)
             {

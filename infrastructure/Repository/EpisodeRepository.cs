@@ -88,6 +88,7 @@ namespace infrastructure.Repository
         {
             return await _context
                 .Episodes
+                .Include(s => s.Series)
                 .Include(s => s.Video)
                 .FirstOrDefaultAsync(i => i.Id == id);
         }

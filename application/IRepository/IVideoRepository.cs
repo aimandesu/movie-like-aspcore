@@ -11,9 +11,7 @@ namespace application.IRepository
     {
         Task<Video?> GetVideo(int id);
         Task<Video?> CreateVideo(
-            Video video,
-            Stream file,
-            string fileName
+            Video video
         );
         Task<Video?> DeleteVideo(int id);
         Task<Video?> UpdateVideo(
