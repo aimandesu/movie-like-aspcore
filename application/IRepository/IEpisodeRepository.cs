@@ -15,13 +15,11 @@ namespace application.IRepository
             CancellationToken cancellationToken
         );
         Task<Episode?> GetEpisode(int id);
-        Task<Episode?> CreateEpisode(
+        Episode CreateEpisode(
             Episode episode,
-            Stream thumbnail,
-            Stream file,
-            string fileName
+            Video video
         );
-        Task<Episode?> DeleteEpisode(int id);
+        Episode? DeleteEpisode(Episode episode);
         Task<Series?> UpdateEpisode(
             int id,
             CreateUpdateEpisodeDto dto,

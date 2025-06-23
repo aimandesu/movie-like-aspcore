@@ -25,24 +25,20 @@ namespace infrastructure.Repository
             _distributedCache = distributedCache;
         }
 
-        public Task<Episode?> CreateEpisode(
+        public Episode CreateEpisode(
             Episode episode,
-            Stream thumbnail,
-            Stream file,
-            string fileName
+            Video video
         )
         {
             return _decorated.CreateEpisode(
                 episode,
-                thumbnail,
-                file,
-                fileName
+                video
             );
         }
 
-        public Task<Episode?> DeleteEpisode(int id)
+        public Episode? DeleteEpisode(Episode episode)
         {
-            return _decorated.DeleteEpisode(id);
+            return _decorated.DeleteEpisode(episode);
         }
 
         public async Task<List<Episode>?> GetAllEpisodes(

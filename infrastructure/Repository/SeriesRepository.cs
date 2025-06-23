@@ -127,12 +127,22 @@ namespace infrastructure.Repository
             return series;
         }
 
-        public async Task<Series?> GetByIdAsync(int id)
+        public async Task<Series?> GetByIdAsync(
+            int id,
+            bool includeEpisode = false
+        )
         {
-            return await _context.Series
+            var query = _context.Series
                 .Include(s => s.SeriesCategories)
                 .Include(s => s.TagCategories)
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .AsQueryable();
+
+            if (includeEpisode)
+            {
+                query = query.Include(s => s.Episodes);
+            }
+
+            return await query.FirstOrDefaultAsync(s => s.Id == id);
         }
 
         public async Task<bool> ExistsByTitleAsync(string title, int? excludeId = null)

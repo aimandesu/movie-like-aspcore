@@ -51,9 +51,12 @@ namespace infrastructure.Repository
             );
         }
 
-        public Task<Series?> GetByIdAsync(int id)
+        public Task<Series?> GetByIdAsync(
+            int id,
+            bool includeEpisode = false
+        )
         {
-            return _decorated.GetByIdAsync(id);
+            return _decorated.GetByIdAsync(id, includeEpisode);
         }
 
         public Task<Series?> GetByTitleAsync(string title)

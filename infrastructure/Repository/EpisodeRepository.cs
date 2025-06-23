@@ -28,97 +28,30 @@ namespace infrastructure.Repository
             _fileService = fileService;
             _logger = logger;
         }
-        public async Task<Episode?> CreateEpisode( //Task<ResultResponse<Episode>>
+        public Episode CreateEpisode( //Task<ResultResponse<Episode>>
             Episode episode,
-            Stream thumbnail,
-            Stream file,
-            string fileName
+            Video video
         )
         {
-            var series = await _context.Series
-                .Include(s => s.Episodes)
-                .FirstOrDefaultAsync(s => s.Id == episode.SeriesId);
-
-            if (series == null)
-            {
-                //  _logger.LogInformation("Found series: {Title}", series);
-                throw new KeyNotFoundException($"Series with ID {episode.SeriesId} not found");
-                //  return ResultResponse<Episode>.Fail(new NotFoundError { Description = "Series not found" });
-            }
-
-            if (episode.Season != null && episode.EpisodeNumber != null && series.Episodes.Any(a =>
-                a.Season == episode.Season
-                && a.EpisodeNumber == episode.EpisodeNumber
-            ))
-            {
-                throw new InvalidOperationException($"Episode already exists in season {episode.Season} with number {episode.EpisodeNumber}");
-                //  return ResultResponse<Episode>.Fail(new ConflictError { Description = "Episode already exists in this season and number" });
-            }
-
-            var safeTitle = MyRegex()
-                    .Replace(CustomFunction
-                    .SanitizeFolderName(series.Title)
-                    .Trim().ToLower().Replace(" ", "_"), "");
-
-            if (thumbnail != null && thumbnail.Length > 0)
-            {
-                var thumbFolder = $"uploads/series/{safeTitle}/episode";
-                episode.Thumbnail = await _fileService.SaveFile(thumbnail, thumbFolder, fileName);
-            }
-
-
-            if (file != null && file.Length > 0)
-            {
-                var videoFolder = $"uploads/series/{safeTitle}/video";
-                var videoPath = await _fileService.SaveFile(file, videoFolder, fileName);
-
-                var video = new Video
-                {
-                    VideoUrl = videoPath,
-                    Duration = 0,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    ViewCount = 0,
-                    Episode = episode
-                };
-
-                _context.Videos.Add(video);
-            }
-
+            _context.Videos.Add(video);
             _context.Episodes.Add(episode);
-            await _context.SaveChangesAsync();
 
             return episode; //ResultResponse<Episode>.Success(episode);
         }
 
 
-        public async Task<Episode?> DeleteEpisode(int id)
+        public Episode? DeleteEpisode(
+            Episode episode
+        )
         {
-            var filePaths = new List<string>();
-
-            var episode = await _context.Episodes
-                .Include(e => e.Video)
-                .FirstOrDefaultAsync(e => e.Id == id);
-
-            if (episode == null)
-            {
-                return null;
-            }
-
-            if (!string.IsNullOrWhiteSpace(episode.Thumbnail))
-            {
-                filePaths.Add(episode.Thumbnail);
-            }
 
             if (episode.Video != null && !string.IsNullOrWhiteSpace(episode.Video.VideoUrl))
             {
-                filePaths.Add(episode.Video.VideoUrl);
+
                 _context.Videos.Remove(episode.Video);
             }
 
-            _fileService.DeleteFiles(filePaths);
             _context.Episodes.Remove(episode);
-            await _context.SaveChangesAsync();
 
             return episode;
         }

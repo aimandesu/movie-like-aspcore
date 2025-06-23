@@ -4,10 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using application.Common;
 using application.Dtos.Episode;
+using application.Features.EpisodeFeature.Create;
+using application.Features.EpisodeFeature.Delete;
 using application.IRepository;
 using application.Mappers;
 using domain.Entities;
 using infrastructure.Data;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace api.Controllers
@@ -19,13 +22,17 @@ namespace api.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IEpisodeRepository _episodeRepo;
+        private readonly IMediator _mediator;
+
         public EpisodeController(
             ApplicationDbContext context,
-            IEpisodeRepository episodeRepository
+            IEpisodeRepository episodeRepository,
+            IMediator mediator
         )
         {
             _context = context;
             _episodeRepo = episodeRepository;
+            _mediator = mediator;
         }
 
         [HttpGet]
@@ -66,31 +73,33 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateEpisode(
+        public async Task<ActionResult<CreateEpisodeResponse>> CreateEpisode(
             [FromForm] CreateUpdateEpisodeDto dto,
             [FromForm] IFormFile thumbnail,
-            [FromForm] IFormFile file
+            [FromForm] IFormFile file,
+            CancellationToken cancellationToken
         )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var episode = new Episode
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-                Thumbnail = dto.Thumbnail,
-                CreatedAt = DateTime.UtcNow,
-                SeriesId = dto.SeriesId,
-                Season = dto.Season,
-                EpisodeNumber = dto.EpisodeNumber,
-            };
+            var command = new CreateEpisodeRequest(
+                CreateUpdateEpisodeDto: dto,
+                Thumbnail: new FileUploadDto(
+                    thumbnail.OpenReadStream(),
+                    thumbnail.FileName,
+                    thumbnail.ContentType
+                ),
+                File: new FileUploadDto(
+                    file.OpenReadStream(),
+                    file.FileName,
+                    file.ContentType
+                )
+            );
 
-            var result = await _episodeRepo.CreateEpisode(
-                episode,
-                thumbnail.OpenReadStream(),
-                file.OpenReadStream(),
-                file.FileName
+            var result = await _mediator.Send(
+                command,
+                cancellationToken
             );
 
             // if (!result.IsSuccess)
@@ -112,26 +121,31 @@ namespace api.Controllers
 
             return CreatedAtAction(
                 nameof(GetEpisode),
-                new { id = episode.Id },
-                episode.ToEpisodeDto()
+                new { id = result?.EpisodeDto?.Id },
+                result?.EpisodeDto
             );
         }
 
         [HttpDelete]
         [Route("{id:int}")]
-        public async Task<IActionResult> Delete([FromRoute] int id)
+        public async Task<ActionResult<DeleteEpisodeResponse>> Delete(
+            [FromRoute] int id
+        )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var series = await _episodeRepo.DeleteEpisode(id);
+            var episode = await _mediator.Send(
+                new DeleteEpisodeRequest(id)
+            );
 
-            if (series == null)
+            if (episode == null)
             {
                 return NotFound();
             }
 
-            return NoContent();
+            // return NoContent();
+            return Ok(episode);
 
         }
 

@@ -57,20 +57,21 @@ namespace application.Features.SeriesFeature.Create
                 TagCategories = dto.TagCategoryIds.Select(tagId => new TagCategory { TagId = tagId }).ToList()
             };
 
-            await _seriesRepository.AddAsync(series);
-            await _unitOfWork.SaveAsync(cancellationToken); // Save to get ID
-
             if (thumbnail != null && thumbnail.FileStream.Length > 0)
             {
                 var safeTitle = CustomFunction.SanitizeFolderName(dto.Title).ToLower().Replace(" ", "_");
                 var folder = $"uploads/series/{safeTitle}/thumbnail";
-                var thumbnailPath = await _fileService.SaveFile(thumbnail.FileStream, folder, thumbnail.FileName);
+                var thumbnailPath = await _fileService.SaveFile(
+                    thumbnail.FileStream,
+                    folder,
+                    thumbnail.FileName
+                );
 
                 series.Thumbnail = thumbnailPath;
-                _seriesRepository.Update(series);
-
-                await _unitOfWork.SaveAsync(cancellationToken); // Save thumbnail path
             }
+
+            await _seriesRepository.AddAsync(series);
+            await _unitOfWork.SaveAsync(cancellationToken);
 
             // var loadedSeries = await _seriesRepository.GetWithIncludesAsync(series.Id);
 

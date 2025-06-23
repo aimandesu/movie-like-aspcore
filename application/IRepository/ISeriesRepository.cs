@@ -15,15 +15,19 @@ namespace application.IRepository
             PaginationQueryObject pagination
         );
         Task<Series?> GetSeries(string slug);
-
         Task<Series?> DeleteSeries(int id);
-
         Task AddAsync(Series series);
         Task<Series?> GetByTitleAsync(string title);
         // Task<Series> GetWithIncludesAsync(int id);
         void Update(Series series);
-        Task<Series?> GetByIdAsync(int id);
-        Task<bool> ExistsByTitleAsync(string title, int? excludeId = null);
+        Task<Series?> GetByIdAsync(
+            int id,
+            bool includeEpisode = false
+        );
+        Task<bool> ExistsByTitleAsync(
+            string title,
+            int? excludeId = null
+        );
 
     }
 }
