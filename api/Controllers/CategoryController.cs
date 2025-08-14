@@ -33,12 +33,17 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAllCategories()
+        public async Task<IActionResult> GetAllCategories(
+            [FromQuery] int page = 1, 
+            [FromQuery] int perPage = 2
+            )
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var categories = await _categoryRepo.GetAllCategories();
+            var categories = await _categoryRepo
+                .GetAllCategories(
+                    page, perPage);
 
             return Ok(categories);
 
